@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-import os
+import os, subprocess
 
 class Proj(models.Model): # fontforge 프로젝트 파일을 통한 관리.
     name=models.CharField(max_length=255)   # 프로젝트 이름
@@ -10,7 +10,7 @@ class Proj(models.Model): # fontforge 프로젝트 파일을 통한 관리.
     def setName(self):
         pass
 
-    def export(self, name, format='.ttf'):  # 폰트 파일 내옴
+    def export(self, name, format='.ttf'):  # 폰트 파일 내옴. 이런 식으로 파일을 내오는 구문은 subprocess를 이용한 IPC가 필수적
         pass
 
     def getImageOf(self, letter, format='.svg'):    # 글자 세팅
