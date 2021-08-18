@@ -54,8 +54,7 @@ class HUser(models.Model):  # ID와 PW로 로그인. 동일 IP에서 로그아�
     user=models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='handle')    # Django 기본 사용자 클래스
     name=models.CharField(max_length=30)    # 사용자가 직접 정하는 이름(중복 불가능)
     ip=models.GenericIPAddressField()
-    
-    
+
 
 class OwnerShip(models.Model):
     proj=models.ForeignKey(Proj,related_name="coop",on_delete=models.CASCADE)   # 프로젝트
