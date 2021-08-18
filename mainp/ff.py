@@ -6,8 +6,8 @@ import fontforge as ffg
 import psMat
 
 BASEPATH='./ff_projects/{}/{}'  # 현재 디렉토리 기준: fontforge 스크립트를 실행시키는 명령을 한 곳
-VECTOR=('svg','eps','glif')
-BITMAP=('bmp','png','xbm','jpg')
+VECTOR=('.svg','.eps','.glif')
+BITMAP=('.bmp','.png','.xbm','.jpg')
 ASCII={'\\':'BSLASH', '/':'SLASH', ':':'COLON','?':'QUEST','%':'PERCENT','*':'ASTER','|':'BAR','.':'PERIOD','<':'LT','>':'GT','"':'DOUBLE',"'":'SINGLE'}
 ASCIIR={ASCII[k]:k for k in ASCII}
 
@@ -40,7 +40,7 @@ if __name__=='__main__':
     if ns.o:
         proj=BASEPATH.format(ns.o,'project.sfd')
         if os.path.isfile(proj):
-            font=ffg.open(proj)
+            font=ffg.open(proj) # 비 아스키 문자가 파일 경로에 있는 경우 열리지 않으니 주의!!!
         else:
             font=ffg.font()
             font.createChar(ord(' '),' ')
@@ -51,7 +51,7 @@ if __name__=='__main__':
                 font.createChar(x,chr(x))
         if ns.a:
             if ns.a != ' ':
-                importImg(font, proj)
+                importImg(font, ns.a)
             else:
                 for x in os.scandir(BASEPATH.format(ns.o,'')):
                     importImg(font, x.path)

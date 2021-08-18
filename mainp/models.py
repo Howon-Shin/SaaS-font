@@ -6,7 +6,7 @@ class Proj(models.Model): # fontforge 프로젝트 파일을 통한 관리.
     name=models.CharField(max_length=255)   # 프로젝트 이름
     isK=models.BooleanField()               # True: 한글 포함, False: 아스키만
     soul=models.GenericIPAddressField(null=True)   # 비로그인 시, 자동으로 IP와 프로젝트를 연결. 사실상 일대일 연결이며 하던 중 id를 생성하는 경우 옮길 수 있도록 기능 제공하며 이게 null이 아닌 경우 Ownership 연결은 없음
-    SUB=['fontforge','-lang','py','-script','./ff.py', '-o']  # ff.py 부분 수정 필요
+    SUB=['fontforge','-script','./ff.py', '-o']  # ff.py 부분 수정 필요
 
     def initalSetting(self):    # 데이터 생성 후 바로 적용
         vp=Proj.SUB[:]
