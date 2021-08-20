@@ -1,0 +1,137 @@
+/************ base-generic *************/
+html, body
+{
+    height: 90%;
+}
+
+.container
+{
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.inner-container
+{
+    margin: auto;
+    padding: 10px;
+}
+
+.card
+{
+    width: 450px;
+    float: left;
+}
+
+/************ draw-font ************/
+.pj-container
+{
+    width: 940px;
+    margin: 10px auto;
+    padding: 20px;
+}
+.over-margin
+{
+    height: 500px;
+}
+.preview
+{
+    width: 700px;
+    padding: 20px;
+    margin-bottom: 20px;
+    float: left;
+    border: 1px solid #bcbcbc;
+}
+.auto-complete
+{
+    width: 180px;
+    padding: 20px;
+    margin-bottom: 20px;
+    float: right;
+    border: 1px solid #bcbcbc;
+}
+.drawing-board
+{
+    width: 440px;
+    padding: 20px;
+    margin-bottom: 20px;
+    float: left;
+    border: 1px solid #bcbcbc;
+}
+.statistics
+{
+    width: 440px;
+    padding: 20px;
+    margin-bottom: 20px;
+    float: right;
+    border: 1px solid #bcbcbc;
+}
+@media ( max-width: 480px )
+{
+    .pj-container
+    {
+        width: auto;
+    }
+    .preview
+    {
+        float: none;
+        width: auto;
+    }
+    .auto-complete
+    {
+        float: none;
+        width: auto;
+    }
+    .drawing-board
+    {
+        float: none;
+        width: auto;
+    }
+    .statistics
+    {
+        float: none;
+        width: auto;
+    }
+}
+
+.canvas-line
+{
+    width: 400px;
+    height: 400px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#canvas
+{
+    border: 1px solid #ccc;
+    position: relative;
+}
+.options
+{
+    align-items: center;
+}
+
+#vertical-line
+{
+    width: 200px;
+    height: 400px;
+    border-right: 1px solid #eee;
+    position: absolute;
+}
+#horizontal-line
+{
+    width: 400px;
+    height: 200px;
+    border-bottom: 1px solid #eee;
+    position: absolute;
+}
+#guide-char
+{
+    position: absolute;
+    margin-left: 60px;
+    margin-top: 40px;
+    font-size: 15em;
+    color: #eeeeee;
+}

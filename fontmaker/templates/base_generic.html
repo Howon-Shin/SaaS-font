@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block title %}<title>fontmaker</title>{% endblock %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/flatly/bootstrap.min.css" integrity="sha384-qF/QmIAj5ZaYFAeQcrQ6bfVMAh4zZlrGwTPY7T/M+iTTLJqJBJjwwnsE5Y0mV7QK" crossorigin="anonymous">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'intro' %}">fontmaker</a>
+        </div>
+    </nav>
+    <div class="container" >
+        {% block body %}
+        <div class="inner-container">
+            <div class="card border-primary mb-3">
+                <div class="card-header">Index</div>
+                <div class="card-body">
+                    <a class="card-title" href="{% url 'draw' pk=1 %}" style="font-size:1.5em">새로 만들기</a>
+                    <p class="card-text">Make new font file.</p>
+                    <br>
+                    <a class="card-title" href="{% url 'draw' pk=1 %}" style="font-size:1.5em">프로젝트 불러오기</a>
+                    <p class="card-text">Open existing project.</p>
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+    </div>
+</body>
+</html>
