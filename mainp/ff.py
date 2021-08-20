@@ -10,6 +10,37 @@ VECTOR=('.svg','.eps','.glif')
 BITMAP=('.bmp','.png','.xbm','.jpg')
 ASCII={'\\':'BSLASH', '/':'SLASH', ':':'COLON','?':'QUEST','%':'PERCENT','*':'ASTER','|':'BAR','.':'PERIOD','<':'LT','>':'GT','"':'DOUBLE',"'":'SINGLE'}
 ASCIIR={ASCII[k]:k for k in ASCII}
+STD_C=(120,90,820,620)
+STD_VV=(320,-86,715,820)
+STD_HV=(54,136,962,642)
+
+LEFT_HV=(85,190,750,370)
+RIGHT_VV=(645,-90,830,820)
+COMPL=(84.0, -113, 989.0, 849.0)
+
+def transC(rect1, rect2):
+    # rect1을 rect2에 맞게 조정. rect1의 비율을 유지하지 않고 rect2의 비율을 따라감
+    dst=(rect2[2]-rect2[0],rect2[3]-rect2[1])
+    mat=psMat.scale(dst[0]/(rect1[2]-rect1[0]),dst[1]/(rect1[3]-rect1[1]))
+    tr2=psMat.translate(rect2[0]-rect1[0],rect2[1]-rect1[1])
+    mat=psMat.compose(mat,tr2)
+    return mat
+
+def transV(rect1, rect2):
+    # rect1을 rect2에 맞게 조정. rect1의 비율을 유지(긴 방향의 중심선 일치)
+    dst=(rect2[2]-rect2[0],rect2[3]-rect2[1])
+    mat=None
+    if rect1[2]-rect1[0]>rect1[3]-rect1[1]:
+        mat=psMat.scale(dst[0]/(rect1[2]-rect1[0]))
+        #tr1=psMat.translate(0,(dst[1]+(rect1[3]-rect1[1])*dst[0]/(rect1[2]-rect1[0]))/2)
+        #mat=psMat.compose(mat,tr1)
+    else:
+        mat=psMat.scale(dst[1]/(rect1[3]-rect1[1]))
+        #tr1=psMat.translate((dst[0]+(rect1[2]-rect1[0])*dst[1]/(rect1[3]-rect1[1]))/2,0)
+        #mat=psMat.compose(mat,tr1)
+    tr2=psMat.translate(rect2[0]-rect1[0],rect2[1]-rect1[1])
+    mat=psMat.compose(mat,tr2)
+    return mat
 
 
 def importImg(font, path):
@@ -24,7 +55,25 @@ def importImg(font, path):
     font[letter].importOutlines(path)
     if ext in BITMAP:
         font[letter].autoTrace()
+    setPos(font, letter)
     # 추가 과정: 차지 공간 설정, 위치 표준화
+
+def setPos(font, letter):
+    code=ord(letter)
+    if letter.isascii():    # 개별 위치선정
+        pass
+    elif code>=12593 and code<=12622:
+        font[letter].transform(transC(font[letter].boundingBox(),STD_C), ('round'))
+    elif code>=44032 and code<=55203:
+        font[letter].transform(transC(font[letter].boundingBox(),COMPL), ('round'))
+    elif letter in 'ㅏㅐㅑㅒㅓㅔㅕㅖ':
+        font[letter].transform(transC(font[letter].boundingBox(),STD_VV), ('round'))
+    elif letter in 'ㅗㅛㅜㅠ':
+        font[letter].transform(transC(font[letter].boundingBox(),STD_HV), ('round'))
+    elif letter in 'ㅘㅙㅚㅝㅞㅟㅢ':
+        font[letter].transform(transC(font[letter].boundingBox(),COMPL), ('round'))
+    else:
+        pass
 
 if __name__=='__main__':
     ap=argparse.ArgumentParser()

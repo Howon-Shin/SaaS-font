@@ -78,8 +78,19 @@ def svg2path(file): # svg의 패스의 d 데이터를 모두 가져옴
             allPaths.append(pathCleaver.findall(p.attrib['d']))
     return allPaths
 
+def mag(x,y):
+    return sqrt(x**2+y**2)
+
 def sinCoef(x1,y1,x2,y2):
-    pass
+    cross=x1*y2-x2*y1
+    if cross<0:
+        cross=-1
+    elif cross>0:
+        cross=1
+    dot=x1*x2+y1*y2
+    dot=dot/mag(x1,y1)/mag(x2,y2)
+    return cross, dot
+
 
 def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 정점-꺾임 데이터[음소별], 배치 데이터[글자별])
     l=len(d)
@@ -124,7 +135,7 @@ def compoundCh():   # 동일한 대상을 가리키는 특성치의 조합
 # ADT
 # 휘어진 각도 기준: 1. 기울기 차, 2. 시계방향/반시계방향(=내적이 아닌 외적이 필요함)
 # 줄기 형태 파악(입력값: 패스, 글자), (출력 예: 글자가 '강'인 경우 패스가 수평선/수직선/ㄱ/ㅏ/원형인지 각각 확인 가능.(ㅇ, ㅁ 등은 등고선 최소 2개 필요))
-# 외부 윤곽선 형태 파악(입력값: 패스)
+# 외부 윤곽선 형태 파악(입력값: 패스), Bayesian Inference -> get RV and realize
 # 배치 파악(입력값: 패스, 글자)
 # 말단 길게/짧게
 
