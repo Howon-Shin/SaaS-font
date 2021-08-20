@@ -1,0 +1,11 @@
+ff_projects
+    ㄴ프로젝트1
+        ㄴㄴproject.sfd
+        ㄴㄴ가.svg  (중복 데이터들이므로 필요할 때만 남아 있을 것)
+        ㄴㄴ각.svg
+        ㄴㄴ가.png
+        ㄴㄴproject.ttf
+        ...
+    ㄴ프로젝트2
+        ㄴㄴ프로젝트2.sfd
+        ...
