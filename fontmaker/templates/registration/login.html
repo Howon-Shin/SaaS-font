@@ -1,0 +1,37 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="container_log my-3">
+        <div class="card border-primary mb-3">
+            <div class="card-header">
+                <div class="row">
+                    <div class="col-4">
+                        <h4>로그인</h4>
+                    </div>
+                    <div class="col-8 text-right">
+                        <span>또는 <a href="{% url 'signup' %}">계정 생성하기</a></span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post" class="post-form" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    {% include "./form_errors.html" %}
+                    <div class="form-group">
+                        <label for="username">사용자 ID</label>
+                        <input type="text" class="form-control" name="username" id="username"
+                               value="{{ form.username.value|default_if_none:'' }}" placeholder="ID">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">비밀번호</label>
+                        <input type="password" class="form-control" name="password" id="password"
+                               value="{{ form.password.value|default_if_none:'' }}" placeholder="Password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">로그인</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

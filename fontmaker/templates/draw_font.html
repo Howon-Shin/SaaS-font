@@ -1,74 +1,79 @@
 {% extends "base_generic.html" %}
 
-{% block body %}
-<div class="pj-container">
-    <div class="over-margin"></div>
-    <div class="preview">
-        <h4>미리보기</h4>
-        <p>A quick brown fox jumps over the lazy dog.</p>
-        <p id="preview-text">다람쥐 헌 쳇바퀴에 타고파</p>
-    </div>
-    <div class="auto-complete">
-        <script>
+{% block content %}
+<div class="container">
+    <div class="pj-container">
+        <div class="over-margin"></div>
+        <div class="preview">
+            <h4>미리보기</h4>
+            <p>A quick brown fox jumps over the lazy dog.</p>
+            <p id="preview-text">다람쥐 헌 쳇바퀴에 타고파</p>
+        </div>
+        <div class="auto-complete">
+            <script>
             function changeFont() {
                 document.getElementById('preview-text').style.fontFamily="굴림, arial";
             }
-        </script>
-        <button type="button" class="btn btn-primary" onclick="changeFont()">자동완성</button>
-    </div>
-    <div class="drawing-board">
-        <div class="draw-container">
-            <div class="form-group">
-                <label class="col-form-label mt-4" for="inputDefault">작성할 글자</label>
-                <input type="text" class="form-control" placeholder="작성할 글자 입력" id="inputDefault">
-            </div>
-            <button type="button" class="btn btn-primary enter">확인</button>
-            <div class="canvas-line">
-                <div id="vertical-line"></div>
-                <div id="horizontal-line"></div>
-                <p id="guide-char">가</p>
-                <canvas id="canvas" width="400px" height="400px"></canvas>
-            </div>
-            <div class="options">
-                <select id="type">
-                    <option value="stroke">실선</option>
-                    <option value="square">사각형</option>
-                    <option value="eraser">지우개</option>
-                </select>
-                <select id="strokeStyle">
-                    <option value="blue">파란색</option>
-                    <option value="red">빨간색</option>
-                    <option value="pink">분홍색</option>
-                    <option value="orange">주황색</option>
-                </select>
-                <select id="lineWidth">
-                    <option value="5">5px</option>
-                    <option value="10">10px</option>
-                    <option value="15">15px</option>
-                    <option value="20">20px</option>
-                </select>
-            </div>
-            {% load static %}
-            <script type="text/javascript" src="{% static 'js/draw_board.js' %}"></script>
+
+            </script>
+            <button type="button" class="btn btn-primary" onclick="changeFont()">자동완성</button>
         </div>
-    </div>
-    <div class="statistics">
-        <p>아스키 {{remains_askii}}/97자</p>
-        <p>현대 완성형 {{remains_hangul}}/11172자</p>
-        <p>한글 자모 {{remains_jamo}}/67자</p>
-        <br>
-        <p>평가 낮은 글자 보기</p>
-        <script>
+        <div class="drawing-board">
+            <div class="draw-container">
+                <div class="form-group">
+                    <label class="col-form-label mt-4" for="inputDefault">작성할 글자</label>
+                    <input type="text" class="form-control" placeholder="작성할 글자 입력" id="inputDefault">
+                </div>
+                <button type="button" class="btn btn-primary enter">확인</button>
+                <div class="canvas-line">
+                    <div id="vertical-line"></div>
+                    <div id="horizontal-line"></div>
+                    <p id="guide-char">가</p>
+                    <canvas id="canvas" width="400px" height="400px"></canvas>
+                </div>
+                <div class="options">
+                    <select id="type">
+                        <option value="stroke">실선</option>
+                        <option value="square">사각형</option>
+                        <option value="eraser">지우개</option>
+                    </select>
+                    <select id="strokeStyle">
+                        <option value="blue">파란색</option>
+                        <option value="red">빨간색</option>
+                        <option value="pink">분홍색</option>
+                        <option value="orange">주황색</option>
+                    </select>
+                    <select id="lineWidth">
+                        <option value="5">5px</option>
+                        <option value="10">10px</option>
+                        <option value="15">15px</option>
+                        <option value="20">20px</option>
+                    </select>
+                </div>
+                {% load static %}
+                <script type="text/javascript" src="{% static 'js/draw_board.js' %}"></script>
+            </div>
+        </div>
+        <div class="statistics">
+            <p>아스키 {{remains_askii}}/97자</p>
+            <p>현대 완성형 {{remains_hangul}}/11172자</p>
+            <p>한글 자모 {{remains_jamo}}/67자</p>
+            <br>
+            <p>평가 낮은 글자 보기</p>
+            <script>
             function guide_check(box) {
                 if(box.checked)
                     document.getElementById('guide-char').innerHTML = "가";
                 else
                     document.getElementById('guide-char').innerHTML = " ";
             }
-        </script>
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked="" onclick="guide_check(this)">
-            <label class="form-check-label" for="flexSwitchCheckChecked">템플릿 가이드 문자 보기</label>
+
+            </script>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked=""
+                       onclick="guide_check(this)">
+                <label class="form-check-label" for="flexSwitchCheckChecked">템플릿 가이드 문자 보기</label>
+            </div>
         </div>
     </div>
 </div>

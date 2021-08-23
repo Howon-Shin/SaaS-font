@@ -4,31 +4,69 @@
     {% block title %}<title>fontmaker</title>{% endblock %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/flatly/bootstrap.min.css" integrity="sha384-qF/QmIAj5ZaYFAeQcrQ6bfVMAh4zZlrGwTPY7T/M+iTTLJqJBJjwwnsE5Y0mV7QK" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/flatly/bootstrap.min.css"
+          integrity="sha384-qF/QmIAj5ZaYFAeQcrQ6bfVMAh4zZlrGwTPY7T/M+iTTLJqJBJjwwnsE5Y0mV7QK" crossorigin="anonymous">
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% load static %}
+    <script src="{% static 'js/jquery.js' %}"></script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'intro' %}">fontmaker</a>
-        </div>
-    </nav>
-    <div class="container" >
-        {% block body %}
-        <div class="inner-container">
-            <div class="card border-primary mb-3">
-                <div class="card-header">Index</div>
-                <div class="card-body">
-                    <a class="card-title" href="{% url 'draw' pk=1 %}" style="font-size:1.5em">새로 만들기</a>
-                    <p class="card-text">Make new font file.</p>
-                    <br>
-                    <a class="card-title" href="{% url 'draw' pk=1 %}" style="font-size:1.5em">프로젝트 불러오기</a>
-                    <p class="card-text">Open existing project.</p>
-                </div>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'index' %}">fontmaker</a>
+    </div>
+    <div class="collapse navbar-collapse" id="navbarColor01">
+        <ul class="navbar-nav me-auto">
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'login' %}">Login</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+{% block content %}
+<div class="container">
+    <div class="inner-container">
+        <div class="card border-primary mb-3">
+            <div class="card-header">Index</div>
+            <div class="card-body">
+                <a class="card-title" href="#layer2" style="font-size:1.5em">새로 만들기</a>
+                <p class="card-text">Make new font file.</p>
+                <br>
+                <a class="card-title" href="{% url 'draw' pk=1 %}" style="font-size:1.5em">프로젝트 불러오기</a>
+                <p class="card-text">Open existing project.</p>
             </div>
         </div>
-        {% endblock %}
     </div>
+</div>
+
+<div class="dim-layer">
+    <div class="dimBg"></div>
+    <div id="layer2" class="pop-layer">
+        <div class="pop-container">
+            <div class="pop-conts">
+                <!--content //-->
+                <p class="ctxt mb20">Thank you.<br>
+                    Your registration was submitted successfully.<br>
+                    Selected invitees will be notified by e-mail on JANUARY 24th.<br><br>
+                    Hope to see you soon!
+                </p>
+
+                <div class="btn-r">
+                    <a href="#" class="btn-layerClose">Close</a>
+                </div>
+                <!--// content-->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 </body>
 </html>

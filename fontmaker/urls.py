@@ -3,6 +3,6 @@ from fontmaker import views
 
 
 urlpatterns = [
-    path('', views.intro, name='intro'),
+    path('', views.index, name='index'),
     path('draw/<int:pk>/', views.draw, name='draw'),
 ]
