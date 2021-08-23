@@ -6,76 +6,15 @@ pathCleaver=re.compile(r'[A-Za-z]|[0-9]+')
 # 함수들 인수: 입력 좌표값 n개, 좌표 리스트(2차원)
 # 리턴값: 특성리스트
 
-def bigV():
-    pass
-
-def smallV():
-    pass
-
-def bigH():
-    pass
-
-def smallH():
-    pass
-
-def bigM():
-    pass
-
-def smallM():
-    pass
-
-def bigT():
-    pass
-
-def smallT():
-    pass
-
-def bigQ():
-    pass
-
-def smallQ():
-    pass
-
-def bigS():
-    pass
-
-def smallS():
-    pass
-
-def bigC():
-    pass
-
-def smallC():
-    pass
-
-param1={
-    'V':bigV,
-    'v':None,
-    'H':None,
-    'h':None,
-}
-param2={
-    'M':None,
-    'm':None,
-    'T':None,
-    't':None,
-}
-param4={
-    'Q':None,
-    'q':None,
-    'S':None,
-    's':None,
-}
-param6={
-    'C':None,
-    'c':None,
-}
+def isNumOrDir(x):
+    return int(x) if x.isnumeric() else x
 
 def svg2path(file): # svg의 패스의 d 데이터를 모두 가져옴
     allPaths=[]
     with eTree.parse(file).getroot() as r:
         for p in r.findall('{http://www.w3.org/2000/svg}path'):
             allPaths.append(pathCleaver.findall(p.attrib['d']))
+            allPaths[-1]=[isNumOrDir(x) for x in allPaths[-1]]
     return allPaths
 
 def mag(x,y):
@@ -95,38 +34,143 @@ def sinCoef(x1,y1,x2,y2):
 def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 정점-꺾임 데이터[음소별], 배치 데이터[글자별])
     l=len(d)
     i=0
+    x0=0
+    y0=0
+    cx=0    # current x coord
+    cy=0    # current y coord
+    cdx=1   # current direction
+    cdy=0   # current direction
     while i<l:  # 최적화를 위해 해시형식 사용하는 것 고려
         if d[i]=='M' or d[i]=='m':
-            pass
+            cx, cy=d[i+1:i+3]
+            x0,y0=cx,cy
+            i+=3
         elif d[i]=='C':
-            pass
+            cdx,cdy=d[i+5]-d[i+3], d[i+6]-d[i+4]
+            cross, dot=sinCoef(
+                d[i+1]-cx, d[i+2]-cy, 
+                cdx,cdy
+            )
+            cx,cy=d[i+5:i+7]
+            i+=7
         elif d[i]=='c':
-            pass
+            cdx,cdy=d[i+5]-d[i+3], d[i+6]-d[i+4]
+            cross, dot=sinCoef(
+                d[i+1], d[i+2],
+                cdx,cdy
+            )
+            cx+=d[i+5]
+            cy+=d[i+6]
+            i+=7
         elif d[i]=='T':
-            pass
+            cross, dot=sinCoef(
+                cdx,cdy,
+                d[i+1]-cx-cdx, d[i+2]-cy-cdy
+            )
+            cdx, cdy=d[i+1]-cx-cdx, d[i+2]-cy-cdy
+            cx,cy=d[i+1:i+3]
+            i+=3
         elif d[i]=='t':
-            pass
+            cross, dot=sinCoef(
+                cdx,cdy,
+                d[i+1]-cdx, d[i+2]-cdy
+            )
+            cdx, cdy=d[i+1]-cdx, d[i+2]-cdy
+            cx+=d[i+1]
+            cy+=d[i+2]
+            i+=3
         elif d[i]=='Q':
-            pass
+            cdx,cdy=d[i+3]-d[i+1], d[i+4]-d[i+2]
+            cross, dot=sinCoef(
+                d[i+1]-cx, d[i+2]-cy,
+                cdx,cdy
+            )
+            cx,cy=d[i+3:i+5]
+            i+=5
         elif d[i]=='q':
-            pass
+            cdx,cdy=d[i+3]-d[i+1], d[i+4]-d[i+2]
+            cross, dot=sinCoef(
+                d[i+1], d[i+2],
+                cdx,cdy
+            )
+            cx+=d[i+3]
+            cy+=d[i+4]
+            i+=5
         elif d[i]=='L':
-            pass
+            cross, dot=sinCoef(
+                cdx,cdy,
+                d[i+1]-cx,d[i+2]-cy
+            )
+            cdx,cdy=d[i+1]-cx,d[i+2]-cy
+            cx,cy=d[i+1:i+3]
+            i+=3
         elif d[i]=='l':
-            pass
+            cross, dot=sinCoef(
+                cdx,cdy,
+                d[i+1],d[i+2]
+            )
+            cdx,cdy=d[i+1],d[i+2]
+            cx+=d[i+1]
+            cy+=d[i+2]
+            i+=3
         elif d[i]=='H':
-            pass
+            cross, dot=sinCoef(
+                cdx,cdy,
+                d[i+1]-cx,0
+            )
+            cdx,cdy=d[i+1]-cx,0
+            cx=d[i+1]
+            i+=2
         elif d[i]=='h':
-            pass
+            cross, dot=sinCoef(
+                cdx,cdy,
+                d[i+1],0
+            )
+            cdx,cdy=d[i+1],0
+            cx+=d[i+1]
+            i+=2
         elif d[i]=='V':
-            pass
+            cross, dot=sinCoef(
+                cdx,cdy,
+                0,d[i+1]-cy
+            )
+            cdx,cdy=0,d[i+1]-cy
+            cy=d[i+1]
+            i+=2
         elif d[i]=='v':
-            pass
+            cross, dot=sinCoef(
+                cdx,cdy,
+                0,d[i+1]
+            )
+            cdx,cdy=0,d[i+1]
+            cy+=d[i+1]
+            i+=2
         elif d[i]=='S':
-            pass
+            cross, dot=sinCoef(
+                cdx,cdy,
+                d[i+3]-d[i+1], d[i+4]-d[i+2]
+            )
+            cdx,cdy=d[i+3]-d[i+1], d[i+4]-d[i+2]
+            cx, cy=d[i+3:i+5]
+            i+=5
         elif d[i]=='s':
-            pass
-        i+=1
+            cross, dot=sinCoef(
+                cdx,cdy,
+                d[i+3]-d[i+1], d[i+4]-d[i+2]
+            )
+            cdx,cdy=d[i+3]-d[i+1], d[i+4]-d[i+2]
+            cx+=d[i+3]
+            cy+=d[i+4]
+            i+=5
+        elif d[i] in 'Zz':
+            cross, dot=sinCoef(
+                cdx,cdy,
+                x0-cx, y0-cy
+            )
+            cdx,cdy=x0-cx, y0-cy
+            cx,cy=x0,y0
+            i+=1
+        # cross, dot usage code
 
 def compoundCh():   # 동일한 대상을 가리키는 특성치의 조합
     pass
