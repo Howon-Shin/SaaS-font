@@ -30,10 +30,19 @@ def sinCoef(x1,y1,x2,y2):
     dot=dot/mag(x1,y1)/mag(x2,y2)
     return cross, dot
 
+def polyLineLen(x0,y0,pl):
+    ret=mag(x0-pl[0],y0-pl[1])
+    i=0
+    l=len(pl)-2
+    while i<l:
+        ret+=mag(pl[i]-pl[i+2],pl[i+1]-pl[i+3])
+        i+=2
+    return ret
 
 def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 정점-꺾임 데이터[음소별], 배치 데이터[글자별])
     l=len(d)
     i=0
+    pl=0    # polyline length
     x0=0
     y0=0
     cx=0    # current x coord
@@ -47,6 +56,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             i+=3
         elif d[i]=='C':
             cdx,cdy=d[i+5]-d[i+3], d[i+6]-d[i+4]
+            pl=polyLineLen(cx,cy,d[i+1:i+7])
             cross, dot=sinCoef(
                 d[i+1]-cx, d[i+2]-cy, 
                 cdx,cdy
@@ -55,6 +65,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             i+=7
         elif d[i]=='c':
             cdx,cdy=d[i+5]-d[i+3], d[i+6]-d[i+4]
+            pl=polyLineLen(0,0,d[i+1:i+7])
             cross, dot=sinCoef(
                 d[i+1], d[i+2],
                 cdx,cdy
@@ -63,6 +74,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cy+=d[i+6]
             i+=7
         elif d[i]=='T':
+            pl=polyLineLen(cx,cy,(cx+cdx,cy+cdy,d[i+1],d[i+2]))
             cross, dot=sinCoef(
                 cdx,cdy,
                 d[i+1]-cx-cdx, d[i+2]-cy-cdy
@@ -71,6 +83,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cx,cy=d[i+1:i+3]
             i+=3
         elif d[i]=='t':
+            pl=polyLineLen(0,0,(cdx,cdy,d[i+1],d[i+2]))
             cross, dot=sinCoef(
                 cdx,cdy,
                 d[i+1]-cdx, d[i+2]-cdy
@@ -80,6 +93,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cy+=d[i+2]
             i+=3
         elif d[i]=='Q':
+            pl=polyLineLen(cx,cy,d[i+1:i+5])
             cdx,cdy=d[i+3]-d[i+1], d[i+4]-d[i+2]
             cross, dot=sinCoef(
                 d[i+1]-cx, d[i+2]-cy,
@@ -88,6 +102,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cx,cy=d[i+3:i+5]
             i+=5
         elif d[i]=='q':
+            pl=polyLineLen(0,0,d[i+1:i+5])
             cdx,cdy=d[i+3]-d[i+1], d[i+4]-d[i+2]
             cross, dot=sinCoef(
                 d[i+1], d[i+2],
@@ -97,6 +112,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cy+=d[i+4]
             i+=5
         elif d[i]=='L':
+            pl=mag(cx-d[i+1],cy-d[i+2])
             cross, dot=sinCoef(
                 cdx,cdy,
                 d[i+1]-cx,d[i+2]-cy
@@ -105,6 +121,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cx,cy=d[i+1:i+3]
             i+=3
         elif d[i]=='l':
+            pl=mag(d[i+1],d[i+2])
             cross, dot=sinCoef(
                 cdx,cdy,
                 d[i+1],d[i+2]
@@ -114,6 +131,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cy+=d[i+2]
             i+=3
         elif d[i]=='H':
+            pl=abs(d[i+1]-cx)
             cross, dot=sinCoef(
                 cdx,cdy,
                 d[i+1]-cx,0
@@ -122,6 +140,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cx=d[i+1]
             i+=2
         elif d[i]=='h':
+            pl=abs(d[i+1])
             cross, dot=sinCoef(
                 cdx,cdy,
                 d[i+1],0
@@ -130,6 +149,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cx+=d[i+1]
             i+=2
         elif d[i]=='V':
+            pl=abs(d[i+1]-cy)
             cross, dot=sinCoef(
                 cdx,cdy,
                 0,d[i+1]-cy
@@ -138,6 +158,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cy=d[i+1]
             i+=2
         elif d[i]=='v':
+            pl=abs(d[i+1])
             cross, dot=sinCoef(
                 cdx,cdy,
                 0,d[i+1]
@@ -146,6 +167,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cy+=d[i+1]
             i+=2
         elif d[i]=='S':
+            pl=polyLineLen(cx,cy,(cx+cdx,cy+cdy,d[i+1],d[i+2],d[i+3],d[i+4]))
             cross, dot=sinCoef(
                 cdx,cdy,
                 d[i+3]-d[i+1], d[i+4]-d[i+2]
@@ -154,6 +176,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cx, cy=d[i+3:i+5]
             i+=5
         elif d[i]=='s':
+            pl=polyLineLen(0,0,(cdx,cdy,d[i+1],d[i+2],d[i+3],d[i+4]))
             cross, dot=sinCoef(
                 cdx,cdy,
                 d[i+3]-d[i+1], d[i+4]-d[i+2]
@@ -163,6 +186,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cy+=d[i+4]
             i+=5
         elif d[i] in 'Zz':
+            pl=mag(cx-x0,cy-y0)
             cross, dot=sinCoef(
                 cdx,cdy,
                 x0-cx, y0-cy
@@ -171,6 +195,9 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cx,cy=x0,y0
             i+=1
         # cross, dot usage code
+    # 1. Noticing overall size(rectangle area)
+    # 2. Find significant splines
+    # 3. classify(ex: 4 90 deg: rectangle, 0 significant: circle, etc.)
 
 def compoundCh():   # 동일한 대상을 가리키는 특성치의 조합
     pass
