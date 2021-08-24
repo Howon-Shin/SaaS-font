@@ -11,10 +11,10 @@ def isNumOrDir(x):
 
 def svg2path(file): # svg의 패스의 d 데이터를 모두 가져옴
     allPaths=[]
-    with eTree.parse(file).getroot() as r:
-        for p in r.findall('{http://www.w3.org/2000/svg}path'):
-            allPaths.append(pathCleaver.findall(p.attrib['d']))
-            allPaths[-1]=[isNumOrDir(x) for x in allPaths[-1]]
+    r=eTree.parse(file).getroot().iter('{http://www.w3.org/2000/svg}path')
+    for p in r:
+        allPaths.append(pathCleaver.findall(p.attrib['d']))
+        allPaths[-1]=[isNumOrDir(x) for x in allPaths[-1]]
     return allPaths
 
 def mag(x,y):
@@ -27,7 +27,10 @@ def sinCoef(x1,y1,x2,y2):
     elif cross>0:
         cross=1
     dot=x1*x2+y1*y2
-    dot=dot/mag(x1,y1)/mag(x2,y2)
+    try:
+        dot=dot/mag(x1,y1)/mag(x2,y2)
+    except ZeroDivisionError:
+        dot=0
     return cross, dot
 
 def polyLineLen(x0,y0,pl):
@@ -40,9 +43,16 @@ def polyLineLen(x0,y0,pl):
     return ret
 
 def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 정점-꺾임 데이터[음소별], 배치 데이터[글자별])
+    ch=[]
+    prev=''
+    omitFlag=0
     l=len(d)
+    dot=1
+    cross=1
     i=0
     pl=0    # polyline length
+    spl=0   # sum of several polyline length
+    top=bot=lpo=rpo=0
     x0=0
     y0=0
     cx=0    # current x coord
@@ -50,142 +60,149 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
     cdx=1   # current direction
     cdy=0   # current direction
     while i<l:  # 최적화를 위해 해시형식 사용하는 것 고려
-        if d[i]=='M' or d[i]=='m':
+        omitFlag=0 if type(d[i]) is str else 1
+        if omitFlag:
+            shape=prev
+        else:
+            shape=d[i]
+        if shape=='M' or shape=='m':
             cx, cy=d[i+1:i+3]
             x0,y0=cx,cy
+            top=bot=y0
+            lpo=rpo=x0
             i+=3
-        elif d[i]=='C':
-            cdx,cdy=d[i+5]-d[i+3], d[i+6]-d[i+4]
+        elif shape=='C':
+            cdx,cdy=d[i+5-omitFlag]-d[i+3-omitFlag], d[i+6-omitFlag]-d[i+4-omitFlag]
             pl=polyLineLen(cx,cy,d[i+1:i+7])
             cross, dot=sinCoef(
-                d[i+1]-cx, d[i+2]-cy, 
+                d[i+1-omitFlag]-cx, d[i+2-omitFlag]-cy, 
                 cdx,cdy
             )
-            cx,cy=d[i+5:i+7]
-            i+=7
-        elif d[i]=='c':
-            cdx,cdy=d[i+5]-d[i+3], d[i+6]-d[i+4]
-            pl=polyLineLen(0,0,d[i+1:i+7])
+            cx,cy=d[i+5-omitFlag:i+7-omitFlag]
+            i+=7-omitFlag
+        elif shape=='c':
+            cdx,cdy=d[i+5-omitFlag]-d[i+3-omitFlag], d[i+6-omitFlag]-d[i+4-omitFlag]
+            pl=polyLineLen(0,0,d[i+1-omitFlag:i+7-omitFlag])
             cross, dot=sinCoef(
-                d[i+1], d[i+2],
+                d[i+1-omitFlag], d[i+2-omitFlag],
                 cdx,cdy
             )
-            cx+=d[i+5]
-            cy+=d[i+6]
-            i+=7
-        elif d[i]=='T':
-            pl=polyLineLen(cx,cy,(cx+cdx,cy+cdy,d[i+1],d[i+2]))
+            cx+=d[i+5-omitFlag]
+            cy+=d[i+6-omitFlag]
+            i+=7-omitFlag
+        elif shape=='T':
+            pl=polyLineLen(cx,cy,(cx+cdx,cy+cdy,d[i+1-omitFlag],d[i+2-omitFlag]))
             cross, dot=sinCoef(
                 cdx,cdy,
-                d[i+1]-cx-cdx, d[i+2]-cy-cdy
+                d[i+1-omitFlag]-cx-cdx, d[i+2-omitFlag]-cy-cdy
             )
-            cdx, cdy=d[i+1]-cx-cdx, d[i+2]-cy-cdy
-            cx,cy=d[i+1:i+3]
-            i+=3
-        elif d[i]=='t':
-            pl=polyLineLen(0,0,(cdx,cdy,d[i+1],d[i+2]))
+            cdx, cdy=d[i+1-omitFlag]-cx-cdx, d[i+2-omitFlag]-cy-cdy
+            cx,cy=d[i+1-omitFlag:i+3-omitFlag]
+            i+=3-omitFlag
+        elif shape=='t':
+            pl=polyLineLen(0,0,(cdx,cdy,d[i+1-omitFlag],d[i+2-omitFlag]))
             cross, dot=sinCoef(
                 cdx,cdy,
-                d[i+1]-cdx, d[i+2]-cdy
+                d[i+1-omitFlag]-cdx, d[i+2-omitFlag]-cdy
             )
-            cdx, cdy=d[i+1]-cdx, d[i+2]-cdy
-            cx+=d[i+1]
-            cy+=d[i+2]
-            i+=3
-        elif d[i]=='Q':
-            pl=polyLineLen(cx,cy,d[i+1:i+5])
-            cdx,cdy=d[i+3]-d[i+1], d[i+4]-d[i+2]
+            cdx, cdy=d[i+1-omitFlag]-cdx, d[i+2-omitFlag]-cdy
+            cx+=d[i+1-omitFlag]
+            cy+=d[i+2-omitFlag]
+            i+=3-omitFlag
+        elif shape=='Q':
+            pl=polyLineLen(cx,cy,d[i+1-omitFlag:i+5-omitFlag])
+            cdx,cdy=d[i+3-omitFlag]-d[i+1-omitFlag], d[i+4-omitFlag]-d[i+2-omitFlag]
             cross, dot=sinCoef(
-                d[i+1]-cx, d[i+2]-cy,
+                d[i+1-omitFlag]-cx, d[i+2-omitFlag]-cy,
                 cdx,cdy
             )
-            cx,cy=d[i+3:i+5]
-            i+=5
-        elif d[i]=='q':
-            pl=polyLineLen(0,0,d[i+1:i+5])
-            cdx,cdy=d[i+3]-d[i+1], d[i+4]-d[i+2]
+            cx,cy=d[i+3-omitFlag:i+5-omitFlag]
+            i+=5-omitFlag
+        elif shape=='q':
+            pl=polyLineLen(0,0,d[i+1-omitFlag:i+5-omitFlag])
+            cdx,cdy=d[i+3-omitFlag]-d[i+1-omitFlag], d[i+4-omitFlag]-d[i+2-omitFlag]
             cross, dot=sinCoef(
-                d[i+1], d[i+2],
+                d[i+1-omitFlag], d[i+2-omitFlag],
                 cdx,cdy
             )
-            cx+=d[i+3]
-            cy+=d[i+4]
-            i+=5
-        elif d[i]=='L':
-            pl=mag(cx-d[i+1],cy-d[i+2])
+            cx+=d[i+3-omitFlag]
+            cy+=d[i+4-omitFlag]
+            i+=5-omitFlag
+        elif shape=='L':
+            pl=mag(cx-d[i+1-omitFlag],cy-d[i+2-omitFlag])
             cross, dot=sinCoef(
                 cdx,cdy,
-                d[i+1]-cx,d[i+2]-cy
+                d[i+1-omitFlag]-cx,d[i+2-omitFlag]-cy
             )
-            cdx,cdy=d[i+1]-cx,d[i+2]-cy
-            cx,cy=d[i+1:i+3]
-            i+=3
-        elif d[i]=='l':
-            pl=mag(d[i+1],d[i+2])
+            cdx,cdy=d[i+1-omitFlag]-cx,d[i+2-omitFlag]-cy
+            cx,cy=d[i+1-omitFlag:i+3-omitFlag]
+            i+=3-omitFlag
+        elif shape=='l':
+            pl=mag(d[i+1-omitFlag],d[i+2-omitFlag])
             cross, dot=sinCoef(
                 cdx,cdy,
-                d[i+1],d[i+2]
+                d[i+1-omitFlag],d[i+2-omitFlag]
             )
-            cdx,cdy=d[i+1],d[i+2]
-            cx+=d[i+1]
-            cy+=d[i+2]
-            i+=3
-        elif d[i]=='H':
-            pl=abs(d[i+1]-cx)
+            cdx,cdy=d[i+1-omitFlag],d[i+2-omitFlag]
+            cx+=d[i+1-omitFlag]
+            cy+=d[i+2-omitFlag]
+            i+=3-omitFlag
+        elif shape=='H':
+            pl=abs(d[i+1-omitFlag]-cx)
             cross, dot=sinCoef(
                 cdx,cdy,
-                d[i+1]-cx,0
+                d[i+1-omitFlag]-cx,0
             )
-            cdx,cdy=d[i+1]-cx,0
-            cx=d[i+1]
-            i+=2
-        elif d[i]=='h':
-            pl=abs(d[i+1])
+            cdx,cdy=d[i+1-omitFlag]-cx,0
+            cx=d[i+1-omitFlag]
+            i+=2-omitFlag
+        elif shape=='h':
+            pl=abs(d[i+1-omitFlag])
             cross, dot=sinCoef(
                 cdx,cdy,
-                d[i+1],0
+                d[i+1-omitFlag],0
             )
-            cdx,cdy=d[i+1],0
-            cx+=d[i+1]
-            i+=2
-        elif d[i]=='V':
-            pl=abs(d[i+1]-cy)
+            cdx,cdy=d[i+1-omitFlag],0
+            cx+=d[i+1-omitFlag]
+            i+=2-omitFlag
+        elif shape=='V':
+            pl=abs(d[i+1-omitFlag]-cy)
             cross, dot=sinCoef(
                 cdx,cdy,
-                0,d[i+1]-cy
+                0,d[i+1-omitFlag]-cy
             )
-            cdx,cdy=0,d[i+1]-cy
-            cy=d[i+1]
-            i+=2
-        elif d[i]=='v':
-            pl=abs(d[i+1])
+            cdx,cdy=0,d[i+1-omitFlag]-cy
+            cy=d[i+1-omitFlag]
+            i+=2-omitFlag
+        elif shape=='v':
+            pl=abs(d[i+1-omitFlag])
             cross, dot=sinCoef(
                 cdx,cdy,
-                0,d[i+1]
+                0,d[i+1-omitFlag]
             )
-            cdx,cdy=0,d[i+1]
-            cy+=d[i+1]
-            i+=2
-        elif d[i]=='S':
-            pl=polyLineLen(cx,cy,(cx+cdx,cy+cdy,d[i+1],d[i+2],d[i+3],d[i+4]))
+            cdx,cdy=0,d[i+1-omitFlag]
+            cy+=d[i+1-omitFlag]
+            i+=2-omitFlag
+        elif shape=='S':
+            pl=polyLineLen(cx,cy,(cx+cdx,cy+cdy,d[i+1-omitFlag],d[i+2-omitFlag],d[i+3-omitFlag],d[i+4-omitFlag]))
             cross, dot=sinCoef(
                 cdx,cdy,
-                d[i+3]-d[i+1], d[i+4]-d[i+2]
+                d[i+3-omitFlag]-d[i+1-omitFlag], d[i+4-omitFlag]-d[i+2-omitFlag]
             )
-            cdx,cdy=d[i+3]-d[i+1], d[i+4]-d[i+2]
-            cx, cy=d[i+3:i+5]
-            i+=5
-        elif d[i]=='s':
-            pl=polyLineLen(0,0,(cdx,cdy,d[i+1],d[i+2],d[i+3],d[i+4]))
+            cdx,cdy=d[i+3-omitFlag]-d[i+1-omitFlag], d[i+4-omitFlag]-d[i+2-omitFlag]
+            cx, cy=d[i+3-omitFlag:i+5-omitFlag]
+            i+=5-omitFlag
+        elif shape=='s':
+            pl=polyLineLen(0,0,(cdx,cdy,d[i+1-omitFlag],d[i+2-omitFlag],d[i+3-omitFlag],d[i+4-omitFlag]))
             cross, dot=sinCoef(
                 cdx,cdy,
-                d[i+3]-d[i+1], d[i+4]-d[i+2]
+                d[i+3-omitFlag]-d[i+1-omitFlag], d[i+4-omitFlag]-d[i+2-omitFlag]
             )
-            cdx,cdy=d[i+3]-d[i+1], d[i+4]-d[i+2]
-            cx+=d[i+3]
-            cy+=d[i+4]
-            i+=5
-        elif d[i] in 'Zz':
+            cdx,cdy=d[i+3-omitFlag]-d[i+1-omitFlag], d[i+4-omitFlag]-d[i+2-omitFlag]
+            cx+=d[i+3-omitFlag]
+            cy+=d[i+4-omitFlag]
+            i+=5-omitFlag
+        elif shape == 'Z' or 'z':
             pl=mag(cx-x0,cy-y0)
             cross, dot=sinCoef(
                 cdx,cdy,
@@ -194,8 +211,29 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cdx,cdy=x0-cx, y0-cy
             cx,cy=x0,y0
             i+=1
+
+        if cy>top:
+            top=cy
+        elif cy<bot:
+            bot=cy
+        if cx>rpo:
+            rpo=cx
+        elif cx<lpo:
+            lpo=cx
+        prev=shape
         # cross, dot usage code
-    # 1. Noticing overall size(rectangle area)
+        if dot<=0.5:
+            ch.append((spl,cross,dot))
+            spl=0
+        #elif dot<0.87:
+            #pass
+        else:
+            spl+=pl
+
+
+    return ch
+
+    # 1. Noticing overall size(rectangle area or total spline length)
     # 2. Find significant splines
     # 3. classify(ex: 4 90 deg: rectangle, 0 significant: circle, etc.)
 
