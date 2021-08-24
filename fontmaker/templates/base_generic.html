@@ -37,32 +37,47 @@
         <div class="card border-primary mb-3">
             <div class="card-header">Index</div>
             <div class="card-body">
-                <a class="card-title" href="#layer2" style="font-size:1.5em">새로 만들기</a>
+                <a class="card-title-new" href="#layer2" style="font-size:1.5em">새로 만들기</a>
                 <p class="card-text">Make new font file.</p>
                 <br>
-                <a class="card-title" href="{% url 'draw' pk=1 %}" style="font-size:1.5em">프로젝트 불러오기</a>
+                <a class="card-title-open" href="#layer3" style="font-size:1.5em">프로젝트 불러오기</a>
                 <p class="card-text">Open existing project.</p>
             </div>
         </div>
     </div>
 </div>
-
+<!--새로만들기 누르면 나오는 layered popup-->
 <div class="dim-layer">
     <div class="dimBg"></div>
-    <div id="layer2" class="pop-layer">
-        <div class="pop-container">
-            <div class="pop-conts">
-                <!--content //-->
-                <p class="ctxt mb20">Thank you.<br>
-                    Your registration was submitted successfully.<br>
-                    Selected invitees will be notified by e-mail on JANUARY 24th.<br><br>
-                    Hope to see you soon!
-                </p>
-
-                <div class="btn-r">
-                    <a href="#" class="btn-layerClose">Close</a>
-                </div>
-                <!--// content-->
+    <div id="layer2" class="pop-layer card border-success mb-3">
+        <div class="card-header" style="font-size:1.5em">새로 만들기</div>
+        <div class="card-body">
+            <div class="form-group">
+                <label class="col-form-label mt-4" for="newProjectName">프로젝트 이름</label>
+                <input type="text" class="form-control" placeholder="Project name" id="newProjectName">
+            </div>
+            <div class="btn-r">
+                <button type="button" class="btn btn-success" onclick="location.href='{% url 'draw' pk=1 %}';">완료
+                </button>
+                <button type="button" class="btn btn-outline-success popup-close">취소</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--프로젝트 불러오기 누르면 나오는 layered popup-->
+<div class="dim-layer2">
+    <div class="dimBg2"></div>
+    <div id="layer3" class="pop-layer2 card border-success mb-3">
+        <div class="card-header" style="font-size:1.5em">프로젝트 불러오기</div>
+        <div class="card-body">
+            <div class="form-group">
+                <label class="col-form-label mt-4" for="projectName">프로젝트 이름</label>
+                <input type="text" class="form-control" placeholder="Project name" id="projectName">
+            </div>
+            <div class="btn-r">
+                <button type="button" class="btn btn-success" onclick="location.href='{% url 'draw' pk=1 %}';">완료
+                </button>
+                <button type="button" class="btn btn-outline-success popup-close2">취소</button>
             </div>
         </div>
     </div>
