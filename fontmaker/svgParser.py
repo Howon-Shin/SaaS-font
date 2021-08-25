@@ -228,7 +228,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             i+=3
         elif shape=='C':
             cdx,cdy=d[i+5-omitFlag]-d[i+3-omitFlag], d[i+6-omitFlag]-d[i+4-omitFlag]
-            pl=polyLineLen(cx,cy,d[i+1:i+7])
+            pl=polyLineLen(cx,cy,d[i+1-omitFlag:i+7-omitFlag])
             cross, dot=sinCoef(
                 d[i+1-omitFlag]-cx, d[i+2-omitFlag]-cy, 
                 cdx,cdy
@@ -382,11 +382,15 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
         #    ch.append((spl,cross,dot))
         #    spl=0
         if dot<0.87:     # 30도
-            ch.append((d[cut:i],spl,cross,dot)) # d[cut:i]는 실제 데이터, spl은 중요도(작은 것은 변형 불가능), cross
+            ch.append((d[cut:i],int(spl),cross,dot)) # d[cut:i]는 실제 데이터, spl은 중요도(작은 것은 변형 불가능, 기준은 대충 직사각형의 짧은 길이의 1/5), cross와 dot은 동질성을 판단하는 데 중요한 열쇠임
+            # dot 참고: 0=90도, 0.17=80도, 0.34=70도, 0.5=60도, 0.64=50도, 0.77=40도, 0.87=30도. 90보다 큰 각은 물론 90 중심 대칭으로 음수
             cut=i
             spl=0
 
     return ch, (top, bot, lpo, rpo)
+
+    # 도트가 0.87보다 큰 것에 대해서는 직선과 2차와 3차 각각에 대하여 얼마나 밖으로 나갔는지 파악해서 평균과 분산을 리턴할 것
+    # /\ 벡터 간의 각도의 절댓값을 말함. 이를 굵기와 함께 미리 주어진 직선에 적용하는 것은 오목-볼록 번갈아, 다른 파일에서 할 일
 
     # 1. 커버 직사각형 범위 기록
     # 2. 전체적 윤곽을 정하는(수정이 가해질) 스플라인 그룹 파악, 그룹에 속하지 않은 부분은 유지
