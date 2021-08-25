@@ -2,12 +2,12 @@ import re
 import xml.etree.ElementTree as eTree
 from math import sqrt
 
-pathCleaver=re.compile(r'[A-Za-z]|[0-9]+')
+pathCleaver=re.compile(r'[A-Za-z]|-?[0-9]+')
 # 함수들 인수: 입력 좌표값 n개, 좌표 리스트(2차원)
 # 리턴값: 특성리스트
 
 def isNumOrDir(x):
-    return int(x) if x.isnumeric() else x
+    return x if x.isalpha() else int(x)
 
 def svg2path(file): # svg의 패스의 d 데이터를 모두 가져옴
     allPaths=[]
@@ -42,21 +42,176 @@ def polyLineLen(x0,y0,pl):
         i+=2
     return ret
 
+def path2abs(d):    # 리스트로 입력된 단일 d 데이터에서 모든 값을 절대값(대문자)으로 변경
+    cx=cy=0
+    x0=y0=0
+    omitFlag=0
+    prev=''
+    i=0
+    l=len(d)
+    while i<l:
+        omitFlag=0 if type(d[i]) is str else 1
+        shape=prev if omitFlag else d[i]
+        if shape=='M' or shape=='m':
+            x0,y0=d[i+1:i+3]
+            cx,cy=x0,y0
+            i+=3
+        elif shape=='c':
+            if omitFlag==0:
+                d[i]='C'
+            d[i+1-omitFlag]+=cx
+            d[i+2-omitFlag]+=cy
+            d[i+3-omitFlag]+=cx
+            d[i+4-omitFlag]+=cy
+            d[i+5-omitFlag]+=cx
+            d[i+6-omitFlag]+=cy
+            cx=d[i+5-omitFlag]
+            cy=d[i+6-omitFlag]
+            i+=7-omitFlag
+        elif shape=='qs':
+            if omitFlag==0:
+                d[i]=d[i].upper()
+            d[i+1-omitFlag]+=cx
+            d[i+2-omitFlag]+=cy
+            d[i+3-omitFlag]+=cx
+            d[i+4-omitFlag]+=cy
+            cx=d[i+3-omitFlag]
+            cy=d[i+4-omitFlag]
+            i+=5-omitFlag
+        elif shape in 'tl':
+            if omitFlag==0:
+                d[i]=d[i].upper()
+            d[i+1-omitFlag]+=cx
+            d[i+2-omitFlag]+=cy
+            cx=d[i+1-omitFlag]
+            cy=d[i+2-omitFlag]
+            i+=3-omitFlag
+        elif shape=='h':
+            if omitFlag==0:
+                d[i]='H'
+            d[i+1-omitFlag]+=cx
+            cx=d[i+1-omitFlag]
+            i+=2-omitFlag
+        elif shape=='v':
+            if omitFlag==0:
+                d[i]='V'
+            d[i+1-omitFlag]+=cy
+            cy=d[i+1-omitFlag]
+            i+=2-omitFlag
+        elif shape in 'Zz':
+            cx,cy=x0,y0
+            i+=1
+        elif shape=='C':
+            cx=d[i+5-omitFlag]
+            cy=d[i+6-omitFlag]
+            i+=7-omitFlag
+        elif shape in 'QS':
+            cx=d[i+3-omitFlag]
+            cy=d[i+4-omitFlag]
+            i+=5-omitFlag
+        elif shape in 'TL':
+            cx=d[i+1-omitFlag]
+            cy=d[i+2-omitFlag]
+            i+=3-omitFlag
+        elif shape=='H':
+            cx=d[i+1-omitFlag]
+            i+=2-omitFlag
+        elif shape=='V':
+            cy=d[i+1-omitFlag]
+            i+=2-omitFlag
+        prev=shape
+
+def path2rel(d):    # 리스트로 입력된 단일 d 데이터에서 모든 값을 상대값(소문자)으로 변경
+    cx=cy=0
+    x0=y0=0
+    omitFlag=0
+    prev=''
+    i=0
+    l=len(d)
+    while i<l:
+        omitFlag=0 if type(d[i]) is str else 1
+        shape=prev if omitFlag else d[i]
+        if shape=='M' or shape=='m':
+            x0,y0=d[i+1:i+3]
+            cx,cy=x0,y0
+            i+=3
+        elif shape=='c':
+            cx+=d[i+5-omitFlag]
+            cy+=d[i+6-omitFlag]
+            i+=7-omitFlag
+        elif shape=='qs':
+            cx+=d[i+3-omitFlag]
+            cy+=d[i+4-omitFlag]
+            i+=5-omitFlag
+        elif shape in 'tl':
+            cx+=d[i+1-omitFlag]
+            cy+=d[i+2-omitFlag]
+            i+=3-omitFlag
+        elif shape=='h':
+            cx+=d[i+1-omitFlag]
+            i+=2-omitFlag
+        elif shape=='v':
+            cy+=d[i+1-omitFlag]
+            i+=2-omitFlag
+        elif shape in 'Zz':
+            cx,cy=x0,y0
+            i+=1
+        elif shape=='C':
+            if omitFlag==0:
+                d[i]='c'
+            d[i+1-omitFlag]-=cx
+            d[i+2-omitFlag]-=cy
+            d[i+3-omitFlag]-=cx
+            d[i+4-omitFlag]-=cy
+            d[i+5-omitFlag]-=cx
+            d[i+6-omitFlag]-=cy
+            cx+=d[i+5-omitFlag]
+            cy+=d[i+6-omitFlag]
+            i+=7-omitFlag
+        elif shape in 'QS':
+            if omitFlag==0:
+                d[i]=d[i].lower()
+            d[i+1-omitFlag]-=cx
+            d[i+2-omitFlag]-=cy
+            d[i+3-omitFlag]-=cx
+            d[i+4-omitFlag]-=cy
+            cx+=d[i+3-omitFlag]
+            cy+=d[i+4-omitFlag]
+            i+=5-omitFlag
+        elif shape in 'TL':
+            if omitFlag==0:
+                d[i]=d[i].lower()
+            d[i+1-omitFlag]-=cx
+            d[i+2-omitFlag]-=cy
+            cx+=d[i+1-omitFlag]
+            cy+=d[i+2-omitFlag]
+            i+=3-omitFlag
+        elif shape=='H':
+            if omitFlag==0:
+                d[i]='h'
+            d[i+1-omitFlag]-=cx
+            cx+=d[i+1-omitFlag]
+            i+=2-omitFlag
+        elif shape=='V':
+            if omitFlag==0:
+                d[i]='v'
+            d[i+1-omitFlag]-=cy
+            cy+=d[i+1-omitFlag]
+            i+=2-omitFlag
+        prev=shape
+
 def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 정점-꺾임 데이터[음소별], 배치 데이터[글자별])
     ch=[]
     prev=''
     omitFlag=0
     l=len(d)
-    dot=1
-    cross=1
-    i=0
+    dot=cross=1
+    cut=i=0     # index
     pl=0    # polyline length
     spl=0   # sum of several polyline length
     top=bot=lpo=rpo=0
-    x0=0
-    y0=0
-    cx=0    # current x coord
-    cy=0    # current y coord
+    x0=y0=0
+    cx=cy=0    # current x, y coord
     cdx=1   # current direction
     cdy=0   # current direction
     while i<l:  # 최적화를 위해 해시형식 사용하는 것 고려
@@ -65,7 +220,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             shape=prev
         else:
             shape=d[i]
-        if shape=='M' or shape=='m':
+        if shape in 'Mm':
             cx, cy=d[i+1:i+3]
             x0,y0=cx,cy
             top=bot=y0
@@ -202,7 +357,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
             cx+=d[i+3-omitFlag]
             cy+=d[i+4-omitFlag]
             i+=5-omitFlag
-        elif shape == 'Z' or 'z':
+        elif shape in 'Zz':
             pl=mag(cx-x0,cy-y0)
             cross, dot=sinCoef(
                 cdx,cdy,
@@ -221,21 +376,23 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
         elif cx<lpo:
             lpo=cx
         prev=shape
+        spl+=pl
         # cross, dot usage code
-        if dot<=0.5:
-            ch.append((spl,cross,dot))
+        #if dot<=0.5:    # 60도
+        #    ch.append((spl,cross,dot))
+        #    spl=0
+        if dot<0.87:     # 30도
+            ch.append((d[cut:i],spl,cross,dot)) # d[cut:i]는 실제 데이터, spl은 중요도(작은 것은 변형 불가능), cross
+            cut=i
             spl=0
-        #elif dot<0.87:
-            #pass
-        else:
-            spl+=pl
 
+    return ch, (top, bot, lpo, rpo)
 
-    return ch
-
-    # 1. Noticing overall size(rectangle area or total spline length)
-    # 2. Find significant splines
+    # 1. 커버 직사각형 범위 기록
+    # 2. 전체적 윤곽을 정하는(수정이 가해질) 스플라인 그룹 파악, 그룹에 속하지 않은 부분은 유지
+    # 수정의 케이스: 길이 줄임/늘림, 각도 변형, 굵기 변형(예를 글어 괅같은 데에서는 기본이 굵은 글자의 굵기가 약간 줄 필요가 있음)
     # 3. classify(ex: 4 90 deg: rectangle, 0 significant: circle, etc.)
+    # 아예 입력이 없었던 글자의 생성법: 베이스 패스 기반, 굵기와 표면 특성치를 합하여 적용
 
 def compoundCh():   # 동일한 대상을 가리키는 특성치의 조합
     pass
