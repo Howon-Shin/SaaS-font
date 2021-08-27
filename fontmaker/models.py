@@ -1,12 +1,14 @@
 from django.db import models
 from django.conf import settings
 import os, subprocess
+import svgParser
 
 class Proj(models.Model): # fontforge 프로젝트 파일을 통한 관리.
     name=models.CharField(max_length=255)   # 프로젝트 이름
     isK=models.BooleanField()               # True: 한글 포함, False: 아스키만
     soul=models.GenericIPAddressField(null=True)   # 비로그인 시, 자동으로 IP와 프로젝트를 연결. 사실상 일대일 연결이며 하던 중 id를 생성하는 경우 옮길 수 있도록 기능 제공하며 이게 null이 아닌 경우 Ownership 연결은 없음
     SUB=['fontforge','-script','./ff.py', '-o']  # ff.py 부분 수정 필요
+    fullSet=set(chr(x) for x in range(ord('가'),ord('힣')+1))
 
     def initalSetting(self):    # 데이터 생성 후 바로 적용
         vp=Proj.SUB[:]
@@ -47,8 +49,23 @@ class Proj(models.Model): # fontforge 프로젝트 파일을 통한 관리.
         out, err = subprocess.Popen(vp,stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         return err if err else out
 
-    def autoDraw(self): # 자동완성. 이 함수의 본 내용물은 다른 모듈로 분리할 것
-        pass
+    def autoDraw(self): # 자동완성. 이 함수의 본 내용물은 다른 모듈로 분리할 것, 또한 이 함수를 호출할 떄는 반드시 부 스레드를 생성한 후 부를 것
+        if not self.isK:
+            return
+        unDone=set(self.unDone())
+        unDone.discard(' ')
+        unDone.discard('\n')
+        done=Proj.fullSet-unDone
+        feat=svgParser.CharacterFeature()
+        for gl in done:
+            path=self.getImageOf(gl)
+            feat.addFeature(gl, path) # 특성추출기: 음소별, 글자별, 전체
+            os.remove(path)
+        for gl in unDone:
+            path=feat.gen(gl,self.name)
+            self.setImageOf(path)
+            os.remove(path)
+
 
 class HUser(models.Model):  # ID와 PW로 로그인. 동일 IP에서 로그아웃된 상태로 다른 계정 생성 시도하는 경우, 기존에 존재하는 계정을 알려줄 것
     user=models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='handle')    # Django 기본 사용자 클래스

@@ -3,22 +3,109 @@ import xml.etree.ElementTree as eTree
 from math import sqrt
 
 pathCleaver=re.compile(r'[A-Za-z]|-?[0-9]+')
+mCleaver=re.compile(r'M|m')
 # 함수들 인수: 입력 좌표값 n개, 좌표 리스트(2차원)
 # 리턴값: 특성리스트
 
-def isNumOrDir(x):
-    return x if x.isalpha() else int(x)
+isNumOrDir=lambda x: x if x.isalpha() else int(x)
+path2attr=lambda p: ' '.join(str(x) for x in p)
+mag=lambda x,y: sqrt(x**2+y**2)
+
+class CharacterFeature:
+    '''
+    음소별 특성치
+        전체 크기 대비 상대 굵기
+        전체 크기 대비 말단 길이
+        변형할 수 없는 스플라인
+    글자유형별 특성치
+        초성 가로세로 비율             ->
+        초성 대비 나머지의 차지 영역    -> 이 2가지는 정규분포 확률변수로 다루어질듯?
+        * 글자유형
+            가형) 세로모음
+            각형) 세로모음+받침
+            과형) 고+세로모음
+            곽형) 고+세로모음+받침
+            놔형) ㄱ 이외+ㅗ/ㅛ+세로모음
+            놕형) ㄱ 이외+ㅗ/ㅛ+세로모음+받침
+            귀형) ㅜ+세로모음
+            귁형) ㅜ+세로모음+받침
+            긔형) ㅢ
+            긕형) ㅢ+받침
+            고형) 고/교
+            곡형) 고/교+받침
+            노형) ㄱ 이외+ㅗ/ㅛ
+            녹형) ㄱ 이외+ㅗ/ㅛ+받침
+            그형) ㅡ
+            극형) ㅡ+받침
+            구형) ㅜ/ㅠ
+            국형) ㅜ/ㅠ+받침
+    표면 특성치
+        ???
+    
+    이외에 가지고 있어야 할 것
+        음소 베이스. 그것을 기반으로 특성치 없는 음소를 새로 구성
+    '''
+
+    HD=( 'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ',
+       'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ' )
+    MD=('ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ',
+     'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ' )
+    ED=( '', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ',
+      'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ',
+      'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ')
+
+    BASEORDER=ord('가')
+
+    def __init__(self):
+        pass
+
+    def plusHan(h,m,e=''):
+        return chr(CharacterFeature.BASEORDER+588*CharacterFeature.HD.index(h)+28*CharacterFeature.MD.index(m)+CharacterFeature.ED.index(e))
+
+    def splitHan(letter):
+        letter=ord(letter)-CharacterFeature.BASEORDER
+        ed=CharacterFeature.ED[letter % 28]
+        letter //= 28
+        md=CharacterFeature.MD[letter % 21]
+        letter //= 21
+        hd=CharacterFeature.HD[letter]
+        return hd,md,ed
+
+    def addFeature(self, letter, file):
+        paths=CharacterFeature.svg2path(file)
+        hd,md,ed=CharacterFeature.splitHan(letter)
+        # 글자 타입 파악
+        for p in paths:
+            path2abs(p)
+            a=path2ch(p)
+            # 매칭
+            # self.addSubFeature(self, syl, ch)
+
+    def addSubFeature(self, syl, ch):
+        pass
+
+    def gen(self,letter,proj):
+        pass
+
+def splitPathByM(path: str):
+    ret=[]
+    i=0
+    for x in re.finditer(mCleaver, path):
+        cut=x.span()[0]
+        ret.append(path[i:cut])
+        i=cut
+    ret.append(path[i:])
+    ret.pop(0)
+    return ret
 
 def svg2path(file): # svg의 패스의 d 데이터를 모두 가져옴
     allPaths=[]
     r=eTree.parse(file).getroot().iter('{http://www.w3.org/2000/svg}path')
     for p in r:
-        allPaths.append(pathCleaver.findall(p.attrib['d']))
-        allPaths[-1]=[isNumOrDir(x) for x in allPaths[-1]]
+        for sp in splitPathByM(p):
+            allPaths.append(pathCleaver.findall(sp.attrib['d']))
+            allPaths[-1]=[isNumOrDir(x) for x in allPaths[-1]]
     return allPaths
-
-def mag(x,y):
-    return sqrt(x**2+y**2)
 
 def sinCoef(x1,y1,x2,y2):
     cross=x1*y2-x2*y1

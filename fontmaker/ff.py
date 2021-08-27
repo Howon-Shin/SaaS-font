@@ -59,12 +59,16 @@ def importImg(font, path):
     if letter in ASCIIR:
         letter=ASCIIR[letter]
     font.createChar(ord(letter),letter)
-    font[letter].clear()
+    font[letter].clear(0)
+    font[letter].clear(1)
     font[letter].importOutlines(path)
     # set width and height: ascii's are on above, others are defined as 1024
     if ext in BITMAP:
         font[letter].autoTrace()
     setPos(font, letter)
+    font[letter].simplify()
+    font[letter].round()
+    font[letter].clear(0)
     # 추가 과정: 차지 공간 설정, 위치 표준화
 
 def setPos(font, letter):
