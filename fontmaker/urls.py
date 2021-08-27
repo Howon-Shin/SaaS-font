@@ -5,4 +5,6 @@ from fontmaker import views
 urlpatterns = [
     path('', views.index, name='index'),
     path('draw/<int:pk>/', views.draw, name='draw'),
+    path('draw/<int:pk>/saveImg/', views.draw_save_img, name='saveImg'),
+    path('draw/<int:pk>/image.png/', views.draw_load_img, name='loadImg'),
 ]

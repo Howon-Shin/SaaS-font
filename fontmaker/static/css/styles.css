@@ -196,14 +196,48 @@ html, body
     margin-bottom: 20px;
 }
 
-#canvas
-{
-    border: 1px solid #ccc;
-    position: relative;
+.canvas {
+  width: 400px;
+  height: 400px;
+  /*background-color: white;*/
+  border-radius: 30px;
+  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+  position: relative;
 }
-.options
-{
-    align-items: center;
+
+.controls {
+  margin-top: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.controls .controls__btns {
+  margin-bottom: 30px;
+}
+
+.controls__btns button {
+  all: unset;
+  cursor: pointer;
+  background-color: white;
+  padding: 5px 0;
+  width: 80px;
+  text-align: center;
+  border-radius: 5px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  color: rgba(0, 0, 0, 0.4);
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 12px;
+  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.controls__btns button:active {
+  transform: scale(0.97);
+}
+
+.controls .controls__range {
+  margin-bottom: 30px;
 }
 
 #vertical-line

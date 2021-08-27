@@ -1,108 +1,127 @@
-let isAbleDraw = false;
-const options = {
-    type: 'stroke',
-    strokeStyle: 'blue',
-    lineWidth: 5,
-};
-const rects = [];
-let currentRect = null;
-document.getElementById('canvas').addEventListener('mousedown', () => {
-    isAbleDraw = true;
-    currentRect = {
-        type: options.type,
-        strokeStyle: options.strokeStyle,
-        lineWidth: options.lineWidth,
-        coordinates: [],
-    };
-});
-document.getElementById('canvas').addEventListener('mousemove', (e) => {
-    if (isAbleDraw) {
-        const ctx = e.target.getContext('2d');
-        const [x, y] = [e.offsetX, e.offsetY];
-        currentRect.coordinates.push([x, y]);
-        drawTools.clear();
-        drawTools.execute(rects);
-        if (currentRect.type === 'stroke') drawTools.stroke(currentRect.coordinates, 'rgba(255, 255, 0, .3)', currentRect.lineWidth);
-        if (currentRect.type === 'eraser') drawTools.eraser(currentRect.coordinates, currentRect.lineWidth);
-        if (currentRect.type === 'square') drawTools.square(currentRect.coordinates, 'rgba(255, 255, 0, .3)');
-    }
-});
-document.getElementById('canvas').addEventListener('mouseup', () => {
-    isAbleDraw = false;
-    rects.push(currentRect);
-    drawTools.clear();
-    currentRect = null;
-    drawTools.execute(rects);
-    console.log(rects);
-})
+const canvas = document.getElementById("jsCanvas");
+const ctx = canvas.getContext("2d");
 
-const drawTools = {
-    clear() {
-        // 캔버스 내용 제거
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    },
-    stroke(coordinates, color, lineWidth) {
-        // 마우스가 이동한 경로를 따라 실선 그리기
-        if (coordinates.length > 0) {
-            const ctx = document.getElementById('canvas').getContext('2d');
-            const firstCoordinate = coordinates[0];
-            ctx.beginPath();
-            ctx.moveTo(firstCoordinate[0], firstCoordinate[1]);
-            for (let i = 1; i < coordinates.length; i += 1) {
-                ctx.lineTo(coordinates[i][0], coordinates[i][1]);
-            }
-            ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth;
-            ctx.stroke();
-            ctx.closePath();
-        }
-    },
-    eraser(coordinates, lineWidth) {
-        // 마우스가 이동한 좌표에 따라 하얀색으로 원을 그려서 지우개 기능처럼 동작
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        for (let i = 0; i < coordinates.length; i += 1) {
-            ctx.beginPath();
-            const coordinate = coordinates[i];
-            const [x, y] = coordinate;
-            ctx.fillStyle = 'white';
-            ctx.arc(x, y, lineWidth / 2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.closePath();
-        }
-    },
-    execute(rects) {
-        // rects 배열에 저장 된 도형을 기준으로 다시 캔버스에 그림
-        for (let i = 0; i < rects.length;  i += 1) {
-            const rect = rects[i];
-            const { type } = rect;
-            if (type === 'stroke') this.stroke(rect.coordinates, rect.strokeStyle, rect.lineWidth);
-            if (type === 'eraser') this.eraser(rect.coordinates, rect.lineWidth);
-            if (type === 'square') this.square(rect.coordinates, rect.strokeStyle);
-        }
-    },
-    square(coordinates, color) {
-        // 사각 도형을 그림
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const start = coordinates[0];
-        const end = coordinates[coordinates.length - 1];
-        const [startX, startY] = start;
-        const [endX, endY] = [end[0] - startX, end[1] - startY];
+const CANVAS_SIZE = 400;
+
+canvas.width = CANVAS_SIZE;
+canvas.height = CANVAS_SIZE;
+
+const INITIAL_COLOR = "#2c2c2c"
+ctx.lineWidth = 10;
+
+ctx.strokeStyle = INITIAL_COLOR;
+ctx.fillStyle = INITIAL_COLOR;
+
+let painting = false;
+let filling = false;
+let erasing = false;
+
+function startPainting(event) {
+    painting = true;
+}
+
+function stopPainting(event) {
+    if (painting === true && filling === true) {  // 채우기 모드 용
+        ctx.fill();
+    }
+    painting = false;
+}
+
+function onMouseMove(event) {
+    const x = event.offsetX;
+    const y = event.offsetY;
+}
+
+function onMouseMove(event) {
+    const x = event.offsetX;
+    const y = event.offsetY;
+    if (!painting) {
         ctx.beginPath();
-        ctx.fillStyle = color;
-        ctx.fillRect(startX, startY, endX, endY);
-        ctx.closePath();
-    },
+        ctx.moveTo(x, y);
+    } else {
+        if (erasing) {  // 지우개
+            const eraserWidth = ctx.lineWidth;
+            ctx.clearRect(x, y, eraserWidth, eraserWidth);
+        } else {  // 브러쉬
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+    }
+}
+
+if (canvas) {
+    canvas.addEventListener("mousemove", onMouseMove);
+    canvas.addEventListener("mousedown", startPainting);
+    canvas.addEventListener("mouseup", stopPainting);
+    canvas.addEventListener("mouseleave", stopPainting);
+}
+
+// 붓 두께조절
+const range = document.getElementById("jsRange");
+
+function handleRangeChange(event) {
+    const size = event.target.value;
+    ctx.lineWidth = size;
+}
+
+if (range) {
+    range.addEventListener("input", handleRangeChange);
 };
-document.getElementById('type').addEventListener('change', (e) => {
-    options.type = e.target.value;
+
+// 채우기 or 칠하기 모드 변경
+const mode = document.getElementById("jsMode");
+
+function handleModeClick() {
+    if (filling === false && erasing === false) {
+        filling = true;
+        mode.innerText = "지우개"
+    } else if (filling === true && erasing === false) {
+        filling = false;
+        erasing = true;
+        mode.innerText = "일반 브러쉬";
+    } else {
+        erasing = false;
+        mode.innerText = "채우기 브러쉬";
+    }
+}
+
+if (mode) {
+    mode.addEventListener("click", handleModeClick)
+}
+
+// 세이브 기능
+$(document).ready(function(){
+    $('#jsSave').click(function(){
+        const data = canvas.toDataURL();
+
+        $.ajax({ // base64포멧으로 이미지 업로드
+            type: 'POST',
+            url: 'saveImg/',
+            data: {data: data},
+            success: function(result) {
+                alert("업로드완료");
+            },
+            error: function(e) {
+                alert("에러발생");
+            }
+        });
+    });
 });
-document.getElementById('strokeStyle').addEventListener('change', (e) => {
-    options.strokeStyle = e.target.value;
-});
-document.getElementById('lineWidth').addEventListener('change', (e) => {
-    options.lineWidth = e.target.value;
-});
+
+// 불러오기 기능
+const load = document.getElementById("jsLoad");
+
+function handleLoadClick() {
+    let img = new Image();
+    img.src = "image.png";
+    // 캔버스 지우고 불러오기
+    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    img.onload = function() {
+        ctx.drawImage(img, 0, 0);
+        alert("이미지 로드");
+    }
+}
+
+if (load) {
+    load.addEventListener("click", handleLoadClick);
+}

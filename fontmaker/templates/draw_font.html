@@ -14,7 +14,6 @@
             function changeFont() {
                 document.getElementById('preview-text').style.fontFamily="굴림, arial";
             }
-
             </script>
             <button type="button" class="btn btn-primary" onclick="changeFont()">자동완성</button>
         </div>
@@ -29,26 +28,17 @@
                     <div id="vertical-line"></div>
                     <div id="horizontal-line"></div>
                     <p id="guide-char">가</p>
-                    <canvas id="canvas" width="400px" height="400px"></canvas>
+                    <canvas id="jsCanvas" class="canvas"></canvas>
                 </div>
-                <div class="options">
-                    <select id="type">
-                        <option value="stroke">실선</option>
-                        <option value="square">사각형</option>
-                        <option value="eraser">지우개</option>
-                    </select>
-                    <select id="strokeStyle">
-                        <option value="blue">파란색</option>
-                        <option value="red">빨간색</option>
-                        <option value="pink">분홍색</option>
-                        <option value="orange">주황색</option>
-                    </select>
-                    <select id="lineWidth">
-                        <option value="5">5px</option>
-                        <option value="10">10px</option>
-                        <option value="15">15px</option>
-                        <option value="20">20px</option>
-                    </select>
+                <div class="controls">
+                    <div class="controls__range">
+                        <input type="range" id="jsRange" min="1" max="30.0" value="10" step="1"/>
+                    </div>
+                    <div class="controls__btns">
+                        <button id="jsMode">채우기 브러쉬</button>
+                        <button id="jsSave">업로드</button>
+                        <button id="jsLoad">불러오기</button>
+                    </div>
                 </div>
                 {% load static %}
                 <script type="text/javascript" src="{% static 'js/draw_board.js' %}"></script>
@@ -67,6 +57,9 @@
                 else
                     document.getElementById('guide-char').innerHTML = " ";
             }
+
+
+
 
             </script>
             <div class="form-check form-switch">
