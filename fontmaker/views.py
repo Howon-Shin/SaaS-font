@@ -1,16 +1,28 @@
 import base64
 
 from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, FileResponse
-from fontmaker.forms import UserForm
+from fontmaker.forms import *
+from .models import Proj
 import os
 
 
 def index(request):
-    """처음 보게 되는 홈페이지"""
+    """
+    처음 보게 되는 홈페이지
+    """
     return render(request, 'base_generic.html')
+
+
+def new_project(request):
+    if request.method == "POST":
+        form = ProjForm(request.POST)
+        if form.is_valid():
+            proj = form.save()
+            return redirect('draw', pk=proj.id)
+    return redirect('/')
 
 
 def draw(request, pk):
