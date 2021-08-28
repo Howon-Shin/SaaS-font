@@ -93,11 +93,12 @@ if (mode) {
 $(document).ready(function(){
     $('#jsSave').click(function(){
         const data = canvas.toDataURL();
+        const letter=document.getElementById('working').textContent;
 
         $.ajax({ // base64포멧으로 이미지 업로드
             type: 'POST',
             url: 'saveImg/',
-            data: {data: data},
+            data: {data: data, letter: letter},
             success: function(result) {
                 alert("업로드완료");
             },
@@ -113,7 +114,7 @@ const load = document.getElementById("jsLoad");
 
 function handleLoadClick() {
     let img = new Image();
-    img.src = "image.png";
+    img.src = document.getElementById('working').textContent;
     // 캔버스 지우고 불러오기
     ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
     img.onload = function() {

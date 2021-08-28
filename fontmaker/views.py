@@ -3,7 +3,7 @@ import base64
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse, FileResponse
+from django.http import JsonResponse, FileResponse, Http404
 from fontmaker.forms import *
 from .models import Proj
 import os
@@ -21,6 +21,8 @@ def new_project(request):
         form = ProjForm(request.POST)
         if form.is_valid():
             proj = form.save()
+            proj.initialSetting()
+            proj.save()
             return redirect('draw', pk=proj.id)
     return redirect('/')
 
@@ -43,24 +45,31 @@ def draw(request, pk):
 @csrf_exempt
 def draw_save_img(request, pk):
     data = request.POST.__getitem__('data')
+    letter = request.POST.__getitem__('letter')
     data = data[22:]  # 앞에 base64 아닌부분 제거
 
-    path = str(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static/image/'))
-    filename = 'image.png'
+    proj=Proj.objects.filter(id=pk)[0]
+    filename = './fontmaker/ff_projects/{}/{}'.format(proj.name, letter+'.png')
 
-    image = open(path + filename, "wb")
+    image = open(filename, "wb")
     image.write(base64.b64decode(data))
     image.close()
 
     answer = {'category': 'notyet'}
+
+    proj.setImageOf(filename)
+    os.remove(filename)
+
     return JsonResponse(answer)
 
 
-def draw_load_img(request, pk):
-    path = str(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static/image/'))
-    filename = 'image.png'
-
-    image = open(path + filename, "rb")
+def draw_load_img(request, pk, letter):
+    proj=Proj.objects.filter(id=pk)[0]
+    image=proj.getImageOf(letter,'.png')
+    try:
+        image=open(image,'rb')
+    except:
+        raise Http404
     return FileResponse(image)
 
 

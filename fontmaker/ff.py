@@ -5,7 +5,7 @@ import os
 import fontforge as ffg
 import psMat
 
-BASEPATH='./ff_projects/{}/{}'  # 현재 디렉토리 기준: fontforge 스크립트를 실행시키는 명령을 한 곳
+BASEPATH='./fontmaker/ff_projects/{}/{}'  # 현재 디렉토리 기준: fontforge 스크립트를 실행시키는 명령을 한 곳
 VECTOR=('.svg','.eps','.glif')
 BITMAP=('.bmp','.png','.xbm','.jpg')
 ASCII={'\\':'BSLASH', '/':'SLASH', ':':'COLON','?':'QUEST','%':'PERCENT','*':'ASTER','|':'BAR','.':'PERIOD','<':'LT','>':'GT','"':'DOUBLE',"'":'SINGLE'}
@@ -104,6 +104,7 @@ if __name__=='__main__':
         if os.path.isfile(proj):
             font=ffg.open(proj) # 비 아스키 문자가 파일 경로에 있는 경우 열리지 않으니 주의!!!
         else:
+            os.mkdir('./fontmaker/ff_projects/'+ns.o)
             font=ffg.font()
             font.createChar(ord(' '),' ')
         if ns.h:

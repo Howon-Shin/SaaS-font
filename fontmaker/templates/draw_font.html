@@ -14,16 +14,22 @@
             function changeFont() {
                 document.getElementById('preview-text').style.fontFamily="굴림, arial";
             }
+            function changeWorkingLetter(){
+                let tc=document.getElementById('inputDefault').value;
+                if(document.getElementById('guide-char').innerHTML != " ") document.getElementById('guide-char').innerHTML=tc[0];
+                document.getElementById('inputDefault').value=tc[0];
+                document.getElementById('working').textContent=tc[0];
+            }
             </script>
             <button type="button" class="btn btn-primary" onclick="changeFont()">자동완성</button>
         </div>
         <div class="drawing-board">
             <div class="draw-container">
                 <div class="form-group">
-                    <label class="col-form-label mt-4" for="inputDefault">작성할 글자</label>
+                    <label class="col-form-label mt-4" for="inputDefault">작성 중인 글자: <h3 id="working">[]</h3></label>
                     <input type="text" class="form-control" placeholder="작성할 글자 입력" id="inputDefault">
                 </div>
-                <button type="button" class="btn btn-primary enter">확인</button>
+                <button type="button" class="btn btn-primary enter" onclick="changeWorkingLetter()">확인</button>
                 <div class="canvas-line">
                     <div id="vertical-line"></div>
                     <div id="horizontal-line"></div>
@@ -53,7 +59,7 @@
             <script>
             function guide_check(box) {
                 if(box.checked)
-                    document.getElementById('guide-char').innerHTML = "가";
+                    document.getElementById('guide-char').innerHTML = document.getElementById('working').textContent;
                 else
                     document.getElementById('guide-char').innerHTML = " ";
             }
