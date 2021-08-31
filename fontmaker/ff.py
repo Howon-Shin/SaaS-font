@@ -59,34 +59,38 @@ def importImg(font, path):
     if letter in ASCIIR:
         letter=ASCIIR[letter]
     font.createChar(ord(letter),letter)
-    font[letter].clear(0)
-    font[letter].clear(1)
-    font[letter].importOutlines(path)
+    gl=font[letter]
+    gl.clear(0)
+    gl.clear(1)
+    gl.importOutlines(path)
     # set width and height: ascii's are on above, others are defined as 1024
     if ext in BITMAP:
-        font[letter].autoTrace()
+        gl.autoTrace()
     setPos(font, letter)
-    font[letter].simplify()
-    font[letter].round()
-    font[letter].clear(0)
+    gl.clear(0)
+    gl.simplify()
+    gl.round()
     # 추가 과정: 차지 공간 설정, 위치 표준화
 
 def setPos(font, letter):
     code=ord(letter)
+    gl=font[letter]
+    gl.width=1024
     if letter.isascii():    # 개별 위치선정
-        pass
+        gl.transform(transV(gl.boundingBox(), AREA[code-33]))
+        gl.width=WIDA[code-33]
     elif code>=12593 and code<=12622:
-        font[letter].transform(transC(font[letter].boundingBox(),STD_C), ('round'))
+        gl.transform(transC(gl.boundingBox(),STD_C), ('round'))
     elif code>=44032 and code<=55203:
-        font[letter].transform(transC(font[letter].boundingBox(),COMPL), ('round'))
+        gl.transform(transC(gl.boundingBox(),COMPL), ('round'))
     elif letter in 'ㅏㅐㅑㅒㅓㅔㅕㅖ':
-        font[letter].transform(transC(font[letter].boundingBox(),STD_VV), ('round'))
+        gl.transform(transC(gl.boundingBox(),STD_VV), ('round'))
     elif letter in 'ㅗㅛㅜㅠ':
-        font[letter].transform(transC(font[letter].boundingBox(),STD_HV), ('round'))
+        gl.transform(transC(gl.boundingBox(),STD_HV), ('round'))
     elif letter in 'ㅘㅙㅚㅝㅞㅟㅢ':
-        font[letter].transform(transC(font[letter].boundingBox(),COMPL), ('round'))
+        gl.transform(transC(gl.boundingBox(),COMPL), ('round'))
     else:
-        pass
+        gl.transform(transC(gl.boundingBox(),COMPL), ('round'))
 
 if __name__=='__main__':
     ap=argparse.ArgumentParser()
@@ -121,9 +125,9 @@ if __name__=='__main__':
         if ns.p:
             try:
                 if ns.p in ASCII:
-                    font[ns.p].export(BASEPATH.format(ns.o,ASCII[ns.p]+'.png'))
+                    font[ns.p].export(BASEPATH.format(ns.o,ASCII[ns.p]+'.png'), pixelsize=400)
                 else:
-                    font[ns.p].export(BASEPATH.format(ns.o,ns.p+'.png'))
+                    font[ns.p].export(BASEPATH.format(ns.o,ns.p+'.png'), pixelsize=400)
             except:
                 pass
         if ns.v:
@@ -165,17 +169,6 @@ if __name__=='__main__':
             print(unFilled)
 
         if ns.e:
-            for i in range(33,127):
-                try:
-                    font[i].transform(transV(font[i].boundingBox(),AREA[i-33]))
-                    font[i].width=WIDA[i-33]
-                except:
-                    pass
-            for i in range(256,307):
-                try:
-                    font[i].width=WIDH[i-256]   # 고정값으로 할 수도 있음
-                except:
-                    pass
             name=os.path.splitext(ns.e)[0]
             font.version=1.0
             font.fontname=name
