@@ -26,7 +26,8 @@
             <div class="draw-container">
                 <div class="form-group">
                     <label class="col-form-label mt-4" for="inputDefault">작성 중인 글자: <h3 id="working">[]</h3></label>
-                    <input type="text" class="form-control" placeholder="작성할 글자 입력" id="inputDefault">
+                    <input type="text" class="form-control" placeholder="작성할 글자 입력" id="inputDefault"
+                    onkeyup="if (window.event.keyCode==13) {changeWorkingLetter()}">
                 </div>
                 <button type="button" class="btn btn-primary enter" onclick="changeWorkingLetter()">확인</button>
                 <div class="canvas-line">
@@ -50,16 +51,17 @@
                         <button id="jsRedo">Redo</button>
                     </div>
                     <div class="controls__btns">
-                        <button id="jsSave">업로드</button>
+                        <button id="jsSave" style="background-color:rgb(200, 230, 255)">업로드</button>
                         <button id="jsLoad">불러오기</button>
                     </div>
+                    <p style="color:gray">◈ 이미지 파일을 그림판에 드래그&드랍하여 올릴 수 있습니다. (단, 크기는 가로세로 400px 권장)</p>
                 </div>
                 {% load static %}
                 <script type="text/javascript" src="{% static 'js/draw_board.js' %}"></script>
             </div>
         </div>
         <div class="statistics">
-            <p>아스키 {{remains_askii}}/97자</p>
+            <p>아스키 {{remains_ascii}}/97자</p>
             <p>현대 완성형 {{remains_hangul}}/11172자</p>
             <p>한글 자모 {{remains_jamo}}/67자</p>
             <br>

@@ -56,6 +56,7 @@ if (canvas) {
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
     ctx.fillStyle = "black";
+    push();
 }
 
 // 붓 두께조절
@@ -180,4 +181,39 @@ if (undo) {
 }
 if (redo) {
     redo.addEventListener("click", redoClick);
+}
+
+// 드래그앤 드롭으로 파일 띄우기
+function dragOver(e) {
+    e.stopPropagation();
+    e.preventDefault();
+}
+
+function uploadFiles(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    e.dataTransfer = e.dataTransfer;
+    let files = e.target.files || e.dataTransfer.files;
+
+    if (files.length > 1) {
+        alert('이미지를 한 장만 드래그 해주세요.');
+        return;
+    }
+
+    if (files[0].type.match(/image.*/)) {
+        createImageBitmap(files[0]).then(function(img) {
+           ctx.drawImage(img, 0, 0);
+           push();
+        });
+    } else {
+        alert('이미지가 아닙니다.');
+        return;
+    }
+}
+
+if (canvas) {
+    canvas.addEventListener('dragover', dragOver);
+    canvas.addEventListener('dragleave', dragOver);
+    canvas.addEventListener('drop', uploadFiles);
 }
