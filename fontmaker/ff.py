@@ -108,7 +108,7 @@ if __name__=='__main__':
         if os.path.isfile(proj):
             font=ffg.open(proj) # 비 아스키 문자가 파일 경로에 있는 경우 열리지 않으니 주의!!!
         else:
-            os.mkdir('./fontmaker/ff_projects/'+ns.o)
+            os.makedirs('./fontmaker/ff_projects/'+ns.o)
             font=ffg.font()
             font.createChar(ord(' '),' ')
         if ns.h:

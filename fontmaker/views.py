@@ -48,8 +48,8 @@ def draw_save_img(request, pk):
     letter = request.POST.__getitem__('letter')
     data = data[22:]  # 앞에 base64 아닌부분 제거
 
-    proj=Proj.objects.filter(id=pk)[0]
-    filename = './fontmaker/ff_projects/{}/{}'.format(proj.name, letter+'.png')
+    proj = Proj.objects.filter(id=pk)[0]
+    filename = './fontmaker/ff_projects/{}/{}'.format(proj.name, letter + '.png')
 
     image = open(filename, "wb")
     image.write(base64.b64decode(data))
@@ -64,10 +64,10 @@ def draw_save_img(request, pk):
 
 
 def draw_load_img(request, pk, letter):
-    proj=Proj.objects.filter(id=pk)[0]
-    image=proj.getImageOf(letter,'.png')
+    proj = Proj.objects.filter(id=pk)[0]
+    image = proj.getImageOf(letter, '.png')
     try:
-        image=open(image,'rb')
+        image = open(image, 'rb')
     except:
         raise Http404
     return FileResponse(image)

@@ -31,17 +31,26 @@
                 </div>
                 <button type="button" class="btn btn-primary enter" onclick="changeWorkingLetter()">확인</button>
                 <div class="canvas-line">
+                    <canvas id="jsCanvas" class="canvas"></canvas>
                     <div id="vertical-line"></div>
                     <div id="horizontal-line"></div>
-                    <p id="guide-char">가</p>
-                    <canvas id="jsCanvas" class="canvas"></canvas>
+                    <p id="guide-char" class="no-drag" align="center">가</p>
                 </div>
                 <div class="controls">
                     <div class="controls__range">
                         <input type="range" id="jsRange" min="1" max="30.0" value="10" step="1"/>
                     </div>
                     <div class="controls__btns">
-                        <button id="jsMode">채우기 브러쉬</button>
+                        <button id="jsMode_brush">일반 브러쉬</button>
+                        <button id="jsMode_fill">채우기 브러쉬</button>
+                        <button id="jsMode_erase">지우개</button>
+                        <button id="jsEraseAll">전체 지우기</button>
+                    </div>
+                    <div class="controls__btns">
+                        <button id="jsUndo">Undo</button>
+                        <button id="jsRedo">Redo</button>
+                    </div>
+                    <div class="controls__btns">
                         <button id="jsSave">업로드</button>
                         <button id="jsLoad">불러오기</button>
                     </div>
