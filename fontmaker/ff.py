@@ -75,10 +75,8 @@ def importImg(font, path):
 def setPos(font, letter):
     code=ord(letter)
     gl=font[letter]
-    gl.width=1024
     if letter.isascii():    # 개별 위치선정
         gl.transform(transV(gl.boundingBox(), AREA[code-33]))
-        gl.width=WIDA[code-33]
     elif code>=12593 and code<=12622:
         gl.transform(transC(gl.boundingBox(),STD_C), ('round'))
     elif code>=44032 and code<=55203:
@@ -91,6 +89,11 @@ def setPos(font, letter):
         gl.transform(transC(gl.boundingBox(),COMPL), ('round'))
     else:
         gl.transform(transC(gl.boundingBox(),COMPL), ('round'))
+    
+    if letter.isascii():
+        gl.width=WIDA[code-33]
+    else:
+        gl.width=1024
 
 if __name__=='__main__':
     ap=argparse.ArgumentParser()

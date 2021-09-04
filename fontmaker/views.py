@@ -1,12 +1,13 @@
 import base64
 
 from django.contrib.auth import authenticate, login
+from django.http.response import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, FileResponse, Http404
 from fontmaker.forms import *
 from .models import Proj
-import os
+import os, time
 
 
 def index(request):
@@ -67,10 +68,15 @@ def draw_load_img(request, pk, letter):
     proj = Proj.objects.filter(id=pk)[0]
     image = proj.getImageOf(letter, '.png')
     try:
-        image = open(image, 'rb')
+        imagef = open(image, 'rb')
     except:
         raise Http404
-    return FileResponse(image)
+    res = HttpResponse(imagef.read(), content_type="application/octet-stream")
+    res['Cache-Control']='private'
+    imagef.close()
+    os.remove(image)
+    return res
+    
 
 
 def signup(request):

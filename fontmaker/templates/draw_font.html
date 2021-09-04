@@ -18,6 +18,7 @@
                 if(document.getElementById('guide-char').innerHTML != " ") document.getElementById('guide-char').innerHTML=tc[0];
                 document.getElementById('inputDefault').value=tc[0];
                 document.getElementById('working').textContent=tc[0];
+                handleLoadClick();
             }
             </script>
             <button type="button" class="btn btn-primary" onclick="changeFont()">자동완성</button>
@@ -25,7 +26,7 @@
         <div class="drawing-board">
             <div class="draw-container">
                 <div class="form-group">
-                    <label class="col-form-label mt-4" for="inputDefault">작성 중인 글자: <h3 id="working">[]</h3></label>
+                    <label class="col-form-label mt-4" for="inputDefault">작성 중인 글자: <h3 id="working">A</h3></label>
                     <input type="text" class="form-control" placeholder="작성할 글자 입력" id="inputDefault"
                     onkeyup="if (window.event.keyCode==13) {changeWorkingLetter()}">
                 </div>
@@ -34,7 +35,7 @@
                     <canvas id="jsCanvas" class="canvas"></canvas>
                     <div id="vertical-line"></div>
                     <div id="horizontal-line"></div>
-                    <p id="guide-char" class="no-drag" align="center">가</p>
+                    <p id="guide-char" class="no-drag" align="center">A</p>
                 </div>
                 <div class="controls">
                     <div class="controls__range">

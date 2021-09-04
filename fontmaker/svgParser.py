@@ -76,7 +76,7 @@ class CharacterFeature:
         hd,md,ed=CharacterFeature.splitHan(letter)
         # 글자 타입 파악
         for p in paths:
-            path2abs(p)
+            path2rel(p)
             a=path2ch(p)
             # 매칭
             # self.addSubFeature(self, syl, ch)
@@ -86,6 +86,11 @@ class CharacterFeature:
 
     def gen(self,letter,proj):
         pass
+
+def overlap(r1, r2):    # 직사각형: 상하좌우 순
+    v=min(r1[0],r2[0])-max(r1[1],r2[1])
+    h=min(r1[3],r2[3])-max(r1[2],r2[2])
+    return v*h if v>0 and h>0 else 0
 
 def splitPathByM(path: str):
     ret=[]
@@ -480,7 +485,7 @@ def path2ch(d): # 단일 d 데이터의 특성 추출(표면 데이터[전체], 
     # /\ 벡터 간의 각도의 절댓값을 말함. 이를 굵기와 함께 미리 주어진 직선에 적용하는 것은 오목-볼록 번갈아, 다른 파일에서 할 일
 
     # 1. 커버 직사각형 범위 기록
-    # 2. 전체적 윤곽을 정하는(수정이 가해질) 스플라인 그룹 파악, 그룹에 속하지 않은 부분은 유지
+    # 2. 전체적 윤곽을 정하는(수정이 가해질) 스플라인 그룹 파악, 그룹에 속하지 않은 부분은 유지. 그룹 내 마지막 스플라인은 직선이 아닌 경우 수정할 수 없음
     # 수정의 케이스: 길이 줄임/늘림, 각도 변형, 굵기 변형(예를 글어 괅같은 데에서는 기본이 굵은 글자의 굵기가 약간 줄 필요가 있음)
     # 3. classify(ex: 4 90 deg: rectangle, 0 significant: circle, etc.)
     # 아예 입력이 없었던 글자의 생성법: 베이스 패스 기반, 굵기와 표면 특성치를 합하여 적용
