@@ -72,7 +72,7 @@ def draw_load_img(request, pk, letter):
     except:
         raise Http404
     res = HttpResponse(imagef.read(), content_type="application/octet-stream")
-    res['Cache-Control']='private'
+    res['Cache-Control']='no-cache, no-store, must-revalidate'
     imagef.close()
     os.remove(image)
     return res
