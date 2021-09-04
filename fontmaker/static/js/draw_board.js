@@ -114,7 +114,7 @@ $(document).ready(function(){
     $('#jsSave').click(function(){
         const data = canvas.toDataURL();
         const letter=document.getElementById('working').textContent;
-        $('#jsSave').disabled=true;
+        this.disabled=true;
 
         $.ajax({ // base64포멧으로 이미지 업로드
             type: 'POST',
@@ -122,11 +122,11 @@ $(document).ready(function(){
             data: {data: data, letter: letter},
             success: function(result) {
                 alert("업로드완료");
-                $('#jsSave').disabled=false;
+                // this.disabled=false;
             },
             error: function(req, stat, e) {
                 alert("에러발생");
-                $('#jsSave').disabled=false;
+                // this.disabled=false;
             }
         });
     });
@@ -140,6 +140,7 @@ function handleLoadClick() {
     img.src = document.getElementById('working').textContent;
     load.disabled=true;
     // 캔버스 지우고 불러오기
+
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
     img.onload = function() {

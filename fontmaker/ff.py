@@ -40,12 +40,12 @@ def transV(rect1, rect2):
     mat=None
     if rect1[2]-rect1[0]>rect1[3]-rect1[1]:
         mat=psMat.scale(dst[0]/(rect1[2]-rect1[0]))
-        #tr1=psMat.translate(0,(dst[1]+(rect1[3]-rect1[1])*dst[0]/(rect1[2]-rect1[0]))/2)
-        #mat=psMat.compose(mat,tr1)
+        tr1=psMat.translate(0, -(rect1[3]-rect1[1]-dst[1])/2)
+        mat=psMat.compose(mat,tr1)
     else:
         mat=psMat.scale(dst[1]/(rect1[3]-rect1[1]))
-        #tr1=psMat.translate((dst[0]+(rect1[2]-rect1[0])*dst[1]/(rect1[3]-rect1[1]))/2,0)
-        #mat=psMat.compose(mat,tr1)
+        tr1=psMat.translate(-(rect1[2]-rect1[0]-dst[0])/2, 0)
+        mat=psMat.compose(mat,tr1)
     tr2=psMat.translate(rect2[0]-rect1[0],rect2[1]-rect1[1])
     mat=psMat.compose(mat,tr2)
     return mat
