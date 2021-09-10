@@ -10,7 +10,7 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     {% load static %}
-    <script src="{% static 'js/project_popup.js' %}"></script>
+    <script type="module" src="{% static 'js/project_popup.js' %}"></script>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -76,15 +76,18 @@
     <div id="layer3" class="pop-layer2 card border-success mb-3">
         <div class="card-header" style="font-size:1.5em">프로젝트 불러오기</div>
         <div class="card-body">
-            <div class="form-group">
-                <label class="col-form-label mt-4" for="projectName">프로젝트 이름</label>
-                <input type="text" class="form-control" placeholder="Project name" id="projectName">
-            </div>
-            <div class="btn-r">
-                <button type="button" class="btn btn-success" onclick="location.href='{% url 'draw' pk=1 %}';">완료
-                </button>
-                <button type="button" class="btn btn-outline-success popup-close2">취소</button>
-            </div>
+            <form method="post" class="post-form" action="{% url 'existProj' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="col-form-label mt-4" for="name">프로젝트 이름</label>
+                    <input type="text" class="form-control" placeholder="Project name" id="projectName" name="name">
+                </div>
+                <div class="btn-r">
+                    <button type="submit" class="btn btn-success">완료
+                    </button>
+                    <button type="button" class="btn btn-outline-success popup-close2">취소</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

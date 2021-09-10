@@ -9,18 +9,8 @@
             <p id="preview-text">다람쥐 헌 쳇바퀴에 타고파</p>
         </div>
         <div class="auto-complete">
-            <script>
-            function changeFont() {
-                document.getElementById('preview-text').style.fontFamily="굴림, arial";
-            }
-            function changeWorkingLetter(){
-                let tc=document.getElementById('inputDefault').value;
-                if(document.getElementById('guide-char').innerHTML != " ") document.getElementById('guide-char').innerHTML=tc[0];
-                document.getElementById('inputDefault').value=tc[0];
-                document.getElementById('working').textContent=tc[0];
-                handleLoadClick();
-            }
-            </script>
+            {% load static %}
+            <script type="text/javascript" src="{% static 'js/draw_font_page_ui.js' %}"></script>
             <button type="button" class="btn btn-primary" onclick="changeFont()">자동완성</button>
         </div>
         <div class="drawing-board">
@@ -28,7 +18,7 @@
                 <div class="form-group">
                     <label class="col-form-label mt-4" for="inputDefault">작성 중인 글자: <h3 id="working">A</h3></label>
                     <input type="text" class="form-control" placeholder="작성할 글자 입력" id="inputDefault"
-                    onkeyup="if (window.event.keyCode==13) {changeWorkingLetter()}">
+                           onkeyup="if (window.event.keyCode==13) {changeWorkingLetter()}">
                 </div>
                 <button type="button" class="btn btn-primary enter" onclick="changeWorkingLetter()">확인</button>
                 <div class="canvas-line">
@@ -57,31 +47,42 @@
                     </div>
                     <p style="color:gray">◈ 이미지 파일을 그림판에 드래그&드랍하여 올릴 수 있습니다. (단, 크기는 가로세로 400px 권장)</p>
                 </div>
+                <br>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked=""
+                           onclick="guide_check(this)">
+                    <label class="form-check-label" for="flexSwitchCheckChecked">템플릿 가이드 문자 보기</label>
+                </div>
                 {% load static %}
                 <script type="text/javascript" src="{% static 'js/draw_board.js' %}"></script>
             </div>
         </div>
         <div class="statistics">
-            <p>아스키 {{remains_ascii}}/97자</p>
+            <p>아스키 <a id="undone-ascii" href="#layer2">{{remains_ascii}}</a>/97자</p>
             <p>현대 완성형 {{remains_hangul}}/11172자</p>
             <p>한글 자모 {{remains_jamo}}/67자</p>
             <br>
-            <p>평가 낮은 글자 보기</p>
-            <script>
-            function guide_check(box) {
-                if(box.checked)
-                    document.getElementById('guide-char').innerHTML = document.getElementById('working').textContent;
-                else
-                    document.getElementById('guide-char').innerHTML = " ";
-            }
-            </script>
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked=""
-                       onclick="guide_check(this)">
-                <label class="form-check-label" for="flexSwitchCheckChecked">템플릿 가이드 문자 보기</label>
-            </div>
+            {% load static %}
+            <script type="module" src="{% static 'js/undone.js' %}"></script>
         </div>
         <div class="margin-bottom"></div>
+    </div>
+</div>
+<!--안된글자(undone) 누르면 나오는 layered popup-->
+<div class="dim-layer">
+    <div class="dimBg"></div>
+    <div id="layer2" class="pop-layer card border-success mb-3">
+        <div class="card-header" style="font-size:1.5em">미작성 글자 목록</div>
+        <div class="card-body">
+                <div id="undone-chars-display" style="height:50vh; overflow:auto">
+
+                </div>
+
+                <div class="btn-r">
+                    <button type="button" class="btn btn-outline-success popup-close">닫기</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

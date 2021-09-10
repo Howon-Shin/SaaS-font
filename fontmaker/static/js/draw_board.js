@@ -138,7 +138,7 @@ const load = document.getElementById("jsLoad");
 function handleLoadClick() {
     let img = new Image();
     img.src = document.getElementById('working').textContent;
-    load.disabled=true;
+    //load.disabled=true;
     // 캔버스 지우고 불러오기
 
     ctx.fillStyle = 'white';
@@ -148,7 +148,7 @@ function handleLoadClick() {
         alert("이미지 로드");
     }
     push();
-    load.disabled=false;
+    //load.disabled=false;
 }
 
 if (load) {

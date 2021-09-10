@@ -6,5 +6,6 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('draw/<int:pk>/', views.draw, name='draw'),
     path('draw/<int:pk>/saveImg/', views.draw_save_img, name='saveImg'),
+    path('draw/<int:pk>/undone/', views.undone_chars, name='undone'),
     path('draw/<int:pk>/<str:letter>/', views.draw_load_img, name='loadImg'),
 ]

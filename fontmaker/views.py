@@ -28,6 +28,27 @@ def new_project(request):
     return redirect('/')
 
 
+def exist_project(request):  # 계정과 프로젝트 연결 필요
+    if request.method == "POST":
+        project_name = request.POST['name']
+
+        proj = Proj.objects.filter(name=project_name)[0]
+
+        if proj:
+            return redirect('draw', pk=proj.id)
+        else:
+            return redirect('/')
+
+
+def undone_chars(request, pk):
+    proj = Proj.objects.filter(id=pk)[0]
+
+    if proj:
+        undones = proj.unDone().split()
+
+        return JsonResponse({'data': undones})
+
+
 def draw(request, pk):
     """
     폰트 그리는 페이지

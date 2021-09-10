@@ -9,7 +9,7 @@ $(document).ready(function(){
     });
 });
 
-function layer_popup(el, num) {
+export function layer_popup(el, num) {
 
     // 새로 만들기 와 프로젝트 불러오기 구분용
     let dimBg, _dimlayer, _popupclose, _layer;

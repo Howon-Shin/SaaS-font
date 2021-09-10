@@ -53,7 +53,7 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
         if self.isK:
             vp.append('--uk')
         out, err = subprocess.Popen(vp, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-        return err if err else out
+        return err if len(err)>371 else out.decode('cp949')
 
     def autoDraw(self):  # 자동완성. 이 함수의 본 내용물은 다른 모듈로 분리할 것, 또한 이 함수를 호출할 떄는 반드시 부 스레드를 생성한 후 부를 것
         if not self.isK:

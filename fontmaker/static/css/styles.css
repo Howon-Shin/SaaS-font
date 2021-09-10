@@ -293,3 +293,15 @@
     -khtml-user-select: none;
     user-select:none;
 }
+
+.undone-chars {
+    color: rgb(0, 200, 120);
+
+    -webkit-transition-property:color;
+    -webkit-transition-duration: 0.2s, 2s;
+    -webkit-transition-timing-function: linear, ease-in;
+}
+
+.undone-chars:hover {
+    color: rgb(100, 100, 200);
+}

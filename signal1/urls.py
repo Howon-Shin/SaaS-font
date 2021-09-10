@@ -30,4 +30,5 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('signup/', views.signup, name='signup'),
     path('newProject/', views.new_project, name='newProj'),
+    path('existProject/', views.exist_project, name='existProj'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
