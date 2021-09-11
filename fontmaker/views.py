@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, FileResponse, Http404
 from fontmaker.forms import *
-from .models import Proj
+from .models import Proj, HUser, OwnerShip
 import os, time
 
 
@@ -14,30 +14,55 @@ def index(request):
     """
     처음 보게 되는 홈페이지
     """
-    return render(request, 'base_generic.html')
+    my_proj_names = []  # 프로젝트 불러오기에 자기 프로젝트 이름 띄우기 용
+    if request.user.is_authenticated:
+        huser = HUser.objects.filter(user=request.user)[0]
+        ownerships = OwnerShip.objects.filter(user=huser)
+
+        for ownership in ownerships:
+            my_proj_names.append(ownership.proj.name)
+
+    context = {
+        'my_proj_names': my_proj_names,
+    }
+
+    return render(request, 'base_generic.html', context)
 
 
 def new_project(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.user.is_authenticated:  # 일단 로그인해야 가능하게 둠, 비로그인 설정 필요
         form = ProjForm(request.POST)
         if form.is_valid():
             proj = form.save()
             proj.initialSetting()
             proj.save()
+
+            owner_ship = OwnerShip()
+            owner_ship.proj = proj
+            huser = HUser.objects.filter(user=request.user)[0]
+            owner_ship.user = huser
+            owner_ship.level = 2
+            owner_ship.save()
+
             return redirect('draw', pk=proj.id)
     return redirect('/')
 
 
 def exist_project(request):  # 계정과 프로젝트 연결 필요
     if request.method == "POST":
-        project_name = request.POST['name']
+        project_name = request.POST.get('name')
 
-        proj = Proj.objects.filter(name=project_name)[0]
-
-        if proj:
-            return redirect('draw', pk=proj.id)
-        else:
+        proj = Proj.objects.filter(name=project_name) if project_name else None
+        huser = HUser.objects.filter(user=request.user) if request.user.is_authenticated else None
+        if not (proj or huser):
             return redirect('/')
+
+        ownership = OwnerShip.objects.filter(proj=proj[0], user=huser[0])
+
+        if ownership:
+            return redirect('draw', pk=proj[0].id)
+        else:
+            return redirect('/')  # 알림 띄우고 싶지만 잘 모르겠음
 
 
 def undone_chars(request, pk):
@@ -96,10 +121,9 @@ def draw_load_img(request, pk, letter):
     res['Cache-Control']='no-cache, no-store, must-revalidate'
     imagef.close()
     os.remove(image)
-    print('load ' + letter)
+    # print('load ' + letter)
     return res
     
-
 
 def signup(request):
     """
@@ -113,6 +137,14 @@ def signup(request):
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)  # 사용자 인증
             login(request, user)  # 로그인
+
+            # HUser 연결, name 저렇게 하면되나?
+            huser = HUser()
+            huser.user = user
+            huser.name = username
+            huser.ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '')).split(',')[0].strip()
+            huser.save()
+
             return redirect('index')
     else:
         form = UserForm()

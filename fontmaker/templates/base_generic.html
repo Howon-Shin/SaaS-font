@@ -80,7 +80,12 @@
                 {% csrf_token %}
                 <div class="form-group">
                     <label class="col-form-label mt-4" for="name">프로젝트 이름</label>
-                    <input type="text" class="form-control" placeholder="Project name" id="projectName" name="name">
+<!--                    <input type="text" class="form-control" placeholder="Project name" id="projectName" name="name">-->
+                    <select class="form-control" id="projectName" name="name">
+                        {% for proj_name in my_proj_names %}
+                        <option value="{{ proj_name }}">{{ proj_name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="btn-r">
                     <button type="submit" class="btn btn-success">완료
