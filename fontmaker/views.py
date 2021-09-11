@@ -96,6 +96,7 @@ def draw_load_img(request, pk, letter):
     res['Cache-Control']='no-cache, no-store, must-revalidate'
     imagef.close()
     os.remove(image)
+    print('load ' + letter)
     return res
     
 

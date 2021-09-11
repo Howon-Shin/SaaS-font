@@ -33,11 +33,6 @@ function stopPainting(event) {
 function onMouseMove(event) {
     const x = event.offsetX;
     const y = event.offsetY;
-}
-
-function onMouseMove(event) {
-    const x = event.offsetX;
-    const y = event.offsetY;
     if (!painting) {
         ctx.beginPath();
         ctx.moveTo(x, y);
@@ -112,25 +107,34 @@ if (erase_all) {
 // 세이브 기능
 $(document).ready(function(){
     $('#jsSave').click(function(){
+        this.disabled = true;
         const data = canvas.toDataURL();
-        const letter=document.getElementById('working').textContent;
-        this.disabled=true;
+        const letter = document.getElementById('working').textContent;
+        saveImage(data, letter, abling(this));
 
-        $.ajax({ // base64포멧으로 이미지 업로드
-            type: 'POST',
-            url: 'saveImg/',
-            data: {data: data, letter: letter},
-            success: function(result) {
-                alert("업로드완료");
-                // this.disabled=false;
-            },
-            error: function(req, stat, e) {
-                alert("에러발생");
-                // this.disabled=false;
-            }
-        });
+        // 중복클릭 방진데 잘안되는거 같음
+        function abling(save_btn) {
+            save_btn.disabled = false;
+        }
     });
 });
+
+function saveImage(img, letter, complete_fn = null) {
+    $.ajax({ // base64포멧으로 이미지 업로드
+        type: 'POST',
+        url: 'saveImg/',
+        data: {data: img, letter: letter},
+        success: function(result) {
+            alert("업로드완료");
+        },
+        error: function(req, stat, e) {
+            alert("에러발생");
+        },
+        complete: function() {
+            if (complete_fn) complete_fn();
+        }
+    });
+}
 
 // 불러오기 기능
 const load = document.getElementById("jsLoad");
@@ -138,17 +142,19 @@ const load = document.getElementById("jsLoad");
 function handleLoadClick() {
     let img = new Image();
     img.src = document.getElementById('working').textContent;
-    //load.disabled=true;
+    load.disabled = true;
     // 캔버스 지우고 불러오기
 
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    ctx.fillStyle = 'black';
+
     img.onload = function() {
         ctx.drawImage(img, 0, 0);
-        alert("이미지 로드");
+        //alert("이미지 로드");
     }
     push();
-    //load.disabled=false;
+    load.disabled = false;
 }
 
 if (load) {
@@ -204,18 +210,44 @@ function uploadFiles(e) {
     let files = e.target.files || e.dataTransfer.files;
 
     if (files.length > 1) {
-        alert('이미지를 한 장만 드래그 해주세요.');
+        for (const file of files) {
+            if (!file.type.match(/image.*/)) {
+                alert(file.name + "은 이미지 파일이 아닙니다.");
+                continue;
+            }
+            if (!file.name.match(/^\S\.\w*/)) {
+                alert(file.name + ": 파일 이름은 한 글자여야 합니다.");
+                continue;
+            }
+
+            const letter = file.name.slice(0, 1);
+            createImgBase64(file, letter);
+        }
         return;
     }
 
     if (files[0].type.match(/image.*/)) {
-        createImageBitmap(files[0]).then(function(img) {
-           ctx.drawImage(img, 0, 0);
-           push();
-        });
+        const letter = document.getElementById('working').textContent;
+        createImgBase64(files[0], letter);
     } else {
         alert('이미지가 아닙니다.');
         return;
+    }
+
+    function createImgBase64(file, letter) {
+        createImageBitmap(file).then(function(img) {
+            // saveImg로 보내기 위해 base64 데이터로 변환
+            let cvs = document.createElement('CANVAS');
+            let ctx_load = cvs.getContext('2d');
+            cvs.height = img.height;
+            cvs.width = img.width;
+            ctx_load.drawImage(img, 0, 0);
+            let dataURL = cvs.toDataURL();
+
+            saveImage(dataURL, letter, handleLoadClick);
+
+            push();
+        });
     }
 }
 
