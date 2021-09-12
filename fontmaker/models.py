@@ -72,12 +72,14 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
             self.setImageOf(path)
             os.remove(path)
 
-
 class HUser(models.Model):  # ID와 PW로 로그인. 동일 IP에서 로그아웃된 상태로 다른 계정 생성 시도하는 경우, 기존에 존재하는 계정을 알려줄 것
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                 related_name='handle')  # Django 기본 사용자 클래스
     name = models.CharField(max_length=30)  # 사용자가 직접 정하는 이름(중복 불가능)
     ip = models.GenericIPAddressField()
+
+    def allProj(self):
+        return [p.proj.name for p in self.projects.all()]
 
 
 class OwnerShip(models.Model):

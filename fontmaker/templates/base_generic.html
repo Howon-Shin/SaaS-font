@@ -13,6 +13,9 @@
     <script type="module" src="{% static 'js/project_popup.js' %}"></script>
 </head>
 <body>
+    {% if wrong_access %}
+    <script>alert("잘못된 접근입니다.");</script>
+    {% endif %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'index' %}">fontmaker</a>

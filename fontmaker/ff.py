@@ -52,6 +52,9 @@ def transV(rect1, rect2):
 
 
 def importImg(font, path):
+    # 확인된 문제 1. fontforge 리눅스 버전에서 clear()은 인수를 받지 않으며 배경을 없애지 않음. 글리프를 없애고 다시 만드는 방식으로 해 보았으나 포지션이 이상하게 잡힘
+    # 확인된 문제 2. setPos가 어째서 한 방에 해결되지 않음
+    # 확인된 문제 3. COMPL의 직사각형 영역이 너무 큼
     letter, ext=os.path.splitext(path)
     if ext not in VECTOR and ext not in BITMAP:
         return
@@ -66,15 +69,15 @@ def importImg(font, path):
     # set width and height: ascii's are on above, others are defined as 1024
     if ext in BITMAP:
         gl.autoTrace()
-    setPos(font, letter)
+    setPos(gl, letter)
+    setPos(gl, letter)
     gl.clear(0)
     gl.simplify()
     gl.round()
     # 추가 과정: 차지 공간 설정, 위치 표준화
 
-def setPos(font, letter):
+def setPos(gl, letter):
     code=ord(letter)
-    gl=font[letter]
     if letter.isascii():    # 개별 위치선정
         gl.transform(transV(gl.boundingBox(), AREA[code-33]))
     elif code>=12593 and code<=12622:

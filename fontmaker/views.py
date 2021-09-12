@@ -10,20 +10,17 @@ from .models import Proj, HUser, OwnerShip
 import os, time
 
 
-def index(request):
+def index(request, isWrong=False):
     """
     처음 보게 되는 홈페이지
     """
     my_proj_names = []  # 프로젝트 불러오기에 자기 프로젝트 이름 띄우기 용
     if request.user.is_authenticated:
-        huser = HUser.objects.filter(user=request.user)[0]
-        ownerships = OwnerShip.objects.filter(user=huser)
-
-        for ownership in ownerships:
-            my_proj_names.append(ownership.proj.name)
+        my_proj_names=request.user.handle.allProj()
 
     context = {
         'my_proj_names': my_proj_names,
+        'wrong_access' : isWrong
     }
 
     return render(request, 'base_generic.html', context)
@@ -37,12 +34,7 @@ def new_project(request):
             proj.initialSetting()
             proj.save()
 
-            owner_ship = OwnerShip()
-            owner_ship.proj = proj
-            huser = HUser.objects.filter(user=request.user)[0]
-            owner_ship.user = huser
-            owner_ship.level = 2
-            owner_ship.save()
+            OwnerShip(proj=proj, user=request.user.handle, level=2).save()
 
             return redirect('draw', pk=proj.id)
     return redirect('/')
@@ -52,17 +44,17 @@ def exist_project(request):  # 계정과 프로젝트 연결 필요
     if request.method == "POST":
         project_name = request.POST.get('name')
 
-        proj = Proj.objects.filter(name=project_name) if project_name else None
-        huser = HUser.objects.filter(user=request.user) if request.user.is_authenticated else None
+        proj = Proj.objects.get(name=project_name) if project_name else None
+        huser = request.user.handle if request.user.is_authenticated else None
         if not (proj or huser):
             return redirect('/')
 
-        ownership = OwnerShip.objects.filter(proj=proj[0], user=huser[0])
+        ownership = OwnerShip.objects.get(proj=proj, user=huser)
 
         if ownership:
-            return redirect('draw', pk=proj[0].id)
+            return redirect('draw', pk=proj.id)
         else:
-            return redirect('/')  # 알림 띄우고 싶지만 잘 모르겠음
+            return index(request, True) # 알림 띄우고 싶지만 잘 모르겠음
 
 
 def undone_chars(request, pk):
@@ -139,9 +131,7 @@ def signup(request):
             login(request, user)  # 로그인
 
             # HUser 연결, name 저렇게 하면되나?
-            huser = HUser()
-            huser.user = user
-            huser.name = username
+            huser = HUser(user=user, name=username)
             huser.ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '')).split(',')[0].strip()
             huser.save()
 
