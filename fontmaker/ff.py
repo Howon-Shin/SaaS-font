@@ -1,7 +1,7 @@
 # fontforge -lang py -script (이 파일 경로) (매개변수들)
 # fontforge가 PATH에 등록되어 있지 않은 경우, 'fontforge' 대신 실행 파일의 실제 위치를 명시할 것
 import argparse
-import os
+import os, platform
 import fontforge as ffg
 import psMat
 
@@ -52,8 +52,6 @@ def transV(rect1, rect2):
 
 
 def importImg(font, path):
-    # 확인된 문제 1. fontforge 리눅스 버전에서 clear()은 인수를 받지 않으며 배경을 없애지 않음. 글리프를 없애고 다시 만드는 방식으로 해 보았으나 포지션이 이상하게 잡힘
-    # 확인된 문제 2. setPos가 어째서 한 방에 해결되지 않음
     # 확인된 문제 3. COMPL의 직사각형 영역이 너무 큼
     letter, ext=os.path.splitext(path)
     if ext not in VECTOR and ext not in BITMAP:
@@ -61,17 +59,14 @@ def importImg(font, path):
     letter=letter.split('/')[-1]
     if letter in ASCIIR:
         letter=ASCIIR[letter]
-    font.createChar(ord(letter),letter)
-    gl=font[letter]
-    gl.clear(0)
-    gl.clear(1)
+    font.removeGlyph(font.createChar(ord(letter),letter))
+    gl=font.createChar(ord(letter),letter)
     gl.importOutlines(path)
     # set width and height: ascii's are on above, others are defined as 1024
     if ext in BITMAP:
         gl.autoTrace()
     setPos(gl, letter)
     setPos(gl, letter)
-    gl.clear(0)
     gl.simplify()
     gl.round()
     # 추가 과정: 차지 공간 설정, 위치 표준화

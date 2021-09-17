@@ -6,7 +6,7 @@ import sys
 
 sys.path.append('.')
 
-from fontmaker import svgParser
+from fontmaker import svgParser, imgProc
 
 
 class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
@@ -40,7 +40,13 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
         else:
             vp.extend([self.name, '-p', letter])
         out, err = subprocess.Popen(vp, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-        return err if len(err)>371 else './fontmaker/ff_projects/{}/{}'.format(self.name, letter+format)  # 에러 없는 경우: 파일 위치를 리턴
+        if len(err)>371:
+            return err
+        else:
+            fileName='./fontmaker/ff_projects/{}/{}'.format(self.name, letter+format)
+            if format=='.png':
+                imgProc.padOut(fileName)
+        return fileName
 
     def setImageOf(self, letter, format='.svg'):  # 글자 세팅(벡터, 비트맵 모두 가능). 이미지가 업로드된 이후에 호출됨. format은 안 쓸 수도 있음
         vp = Proj.SUB[:]
