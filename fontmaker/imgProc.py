@@ -3,7 +3,8 @@ import numpy as np
 
 def padOut(fileName):
     def pad(base: np.ndarray):
-        h,w,_=base.shape
+        h,w,_=base.shape  # AttributeError: 'NoneType' object has no attribute 'shape'
+        # 나한텐 여기서 에러생김
         lrpad=max(0,(400-w)//2)
         udpad=max(0,(400-h)//2)
         if lrpad:

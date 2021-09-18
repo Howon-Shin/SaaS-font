@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, FileResponse, Http404
 from fontmaker.forms import *
 from .models import Proj, HUser, OwnerShip
-import os, time
+import os, time, shutil
 
 
 def index(request, isWrong=False):
@@ -73,10 +73,20 @@ def draw(request, pk):
     remains_ascii = 0  # 97
     remains_hangul = 0  # 11172
     remains_jamo = 0  # 67
+
+    proj = Proj.objects.get(id=pk)
+    huser = HUser.objects.get(user=request.user)
+    owner_level = OwnerShip.objects.filter(proj=proj, user=huser)[0].level
+
+    cur_ownerships = OwnerShip.objects.filter(proj=proj).exclude(user=huser)
+    proj_members = {ownership.user.name: ownership.level for ownership in cur_ownerships}
+
     context = {
         'remains_ascii': remains_ascii,
         'remains_hangul': remains_hangul,
         'remains_jamo': remains_jamo,
+        'owner_level': owner_level,
+        'members': proj_members,
     }
     return render(request, 'draw_font.html', context)
 
@@ -139,3 +149,81 @@ def signup(request):
     else:
         form = UserForm()
     return render(request, 'registration/signup.html', {'form': form})
+
+
+def delete_project(request, pk):
+    if request.method == "POST":
+        proj = Proj.objects.get(id=pk)
+        huser = HUser.objects.get(user=request.user)
+        is_manager = OwnerShip.objects.filter(proj=proj, user=huser)[0].level
+
+        if request.user.is_authenticated and is_manager == 2:
+            # 프로젝트 및 프로젝트 폴더 삭제
+            proj.delete()
+            proj_path = './fontmaker/ff_projects/{}'.format(proj.name)
+            shutil.rmtree(proj_path)
+
+            return redirect('index')  # 왜인지 모르겠지만 작동안함, ajax에 임시로 redirect기능 넣어둠
+
+    return JsonResponse({'right': 'no'})
+
+
+def invite_member(request, pk):
+    if request.method == "POST":
+        proj = Proj.objects.get(id=pk)
+        huser = HUser.objects.get(user=request.user)
+        owner_level = OwnerShip.objects.filter(proj=proj, user=huser)[0].level
+
+        member_ID = request.POST.__getitem__('memberID')
+        member = HUser.objects.filter(name=member_ID)
+
+        if request.user.is_authenticated and owner_level >= 1:
+            if member:
+                OwnerShip(proj=proj, user=member[0], level=0).save()
+                return JsonResponse({'error': 'noerror'})
+            else:
+                return JsonResponse({'error': 'nomember'})
+
+    return JsonResponse({'error': 'noright'})
+
+
+def manage_member(request, pk):
+    if request.method == "POST":
+        proj = Proj.objects.get(id=pk)
+        huser = HUser.objects.get(user=request.user)
+        owner_level = OwnerShip.objects.filter(proj=proj, user=huser)[0].level
+
+        member_ID = request.POST.__getitem__('memberID')
+        level = eval(request.POST.__getitem__('level'))
+        member = HUser.objects.get(name=member_ID)
+        member_ownership = OwnerShip.objects.filter(proj=proj, user=member)[0]
+
+        if request.user.is_authenticated and owner_level >= 2:
+            if member_ownership.level == level:
+                return JsonResponse({'error': 'samelevel'})
+            else:
+                member_ownership.level = level
+                member_ownership.save()
+                return JsonResponse({'error': 'noerror'})
+
+    return JsonResponse({'error': 'noright'})
+
+
+def fire_member(request, pk):
+    if request.method == "POST":
+        proj = Proj.objects.get(id=pk)
+        huser = HUser.objects.get(user=request.user)
+        owner_level = OwnerShip.objects.filter(proj=proj, user=huser)[0].level
+
+        member_ID = request.POST.__getitem__('memberID')
+        member = HUser.objects.get(name=member_ID)
+        member_ownership = OwnerShip.objects.get(proj=proj, user=member)
+
+        if request.user.is_authenticated and owner_level >= 2:
+            if member:
+                member_ownership.delete()
+                return JsonResponse({'error': 'noerror'})
+            else:
+                return JsonResponse({'error': 'nomember'})
+
+    return JsonResponse({'error': 'noright'})

@@ -11,7 +11,7 @@ $(document).ready(function(){
 
 export function layer_popup(el, num) {
 
-    // 새로 만들기 와 프로젝트 불러오기 구분용
+    // 팝업 종류 구분용
     let dimBg, _dimlayer, _popupclose, _layer;
     if (num === 1) {
         dimBg = 'dimBg';
@@ -19,10 +19,10 @@ export function layer_popup(el, num) {
         _popupclose = '.popup-close';
         _layer = '.layer .dimBg';
     } else {
-        dimBg = 'dimBg2';
-        _dimlayer = '.dim-layer2';
-        _popupclose = '.popup-close2';
-        _layer = '.layer2 .dimBg2';
+        dimBg = 'dimBg' + num;
+        _dimlayer = '.dim-layer' + num;
+        _popupclose = '.popup-close' + num;
+        _layer = '.layer' + num + '.dimBg' + num;
     }
 
     let $el = $(el);    //레이어의 id를 $el 변수에 저장
