@@ -2,11 +2,15 @@ from django.db import models
 from django.conf import settings
 import os, subprocess
 
-import sys
+import sys, base64
 
 sys.path.append('.')
 
 from fontmaker import svgParser, imgProc
+
+ASCII = {'\\': 'BSLASH', '/': 'SLASH', ':': 'COLON', '?': 'QUEST', '%': 'PERCENT', '*': 'ASTER', '|': 'BAR',
+         '.': 'PERIOD', '<': 'LT', '>': 'GT', '"': 'DOUBLE', "'": 'SINGLE'}
+ASCIIR = {ASCII[k]: k for k in ASCII}
 
 
 class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
@@ -25,7 +29,7 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
         else:
             vp.extend([self.name])
         out, err = subprocess.Popen(vp, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-        #return err  # err 없는 경우 길이는 371
+        # return err  # err 없는 경우 길이는 371
 
     def export(self, name, format='.ttf'):  # 폰트 파일 내옴. 이런 식으로 파일을 내오는 구문은 subprocess를 이용한 IPC가 필수적
         vp = Proj.SUB[:]
@@ -35,23 +39,39 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
 
     def getImageOf(self, letter, format='.svg'):  # 글자 이미지 추출
         vp = Proj.SUB[:]
-        if format == 'svg':
+        if format == '.svg':
             vp.extend([self.name, '-v', letter])
         else:
             vp.extend([self.name, '-p', letter])
         out, err = subprocess.Popen(vp, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-        if len(err)>371:
+        if len(err) > 371:
             return err
         else:
-            fileName='./fontmaker/ff_projects/{}/{}'.format(self.name, letter+format)
-            if format=='.png':
+            fileName = self.convertFileName(letter, format)
+            if format == '.png':
                 imgProc.padOut(fileName)
         return fileName
 
-    def setImageOf(self, letter, format='.svg'):  # 글자 세팅(벡터, 비트맵 모두 가능). 이미지가 업로드된 이후에 호출됨. format은 안 쓸 수도 있음
+    def setImageOf(self, data, letter, format='.svg'):  # 글자 세팅(벡터, 비트맵 모두 가능). 이미지가 업로드된 이후에 호출됨. format은 안 쓸 수도 있음
         vp = Proj.SUB[:]
-        vp.extend([self.name, '-a', letter])  # letter는 파일 경로로 바꿔야 함
+        fileName = self.convertFileName(letter, format)
+
+        image = open(fileName, "wb")
+        image.write(base64.b64decode(data))
+        image.close()
+
+        vp.extend([self.name, '-a', fileName])  # letter는 파일 경로로 바꿔야 함
         out, err = subprocess.Popen(vp, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        os.remove(fileName)
+
+    def convertFileName(self, letter, format):
+        if letter in ASCII:
+            letter = ASCII[letter]
+
+        fileName = './fontmaker/ff_projects/{}/{}'.format(self.name, letter + format)
+
+        return fileName
+
 
     def unDone(self):  # 완성되지 않은 글자 목록
         vp = Proj.SUB[:]
@@ -59,7 +79,7 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
         if self.isK:
             vp.append('--uk')
         out, err = subprocess.Popen(vp, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-        return err if len(err)>371 else out.decode('cp949')
+        return err if len(err) > 371 else out.decode('cp949')
 
     def autoDraw(self):  # 자동완성. 이 함수의 본 내용물은 다른 모듈로 분리할 것, 또한 이 함수를 호출할 떄는 반드시 부 스레드를 생성한 후 부를 것
         if not self.isK:
@@ -77,6 +97,7 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
             path = feat.gen(gl, self.name)
             self.setImageOf(path)
             os.remove(path)
+
 
 class HUser(models.Model):  # ID와 PW로 로그인. 동일 IP에서 로그아웃된 상태로 다른 계정 생성 시도하는 경우, 기존에 존재하는 계정을 알려줄 것
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,

@@ -16,7 +16,7 @@ def index(request, isWrong=False):
     """
     my_proj_names = []  # 프로젝트 불러오기에 자기 프로젝트 이름 띄우기 용
     if request.user.is_authenticated:
-        my_proj_names=request.user.handle.allProj()
+        my_proj_names = request.user.handle.allProj()
 
     context = {
         'my_proj_names': my_proj_names,
@@ -54,7 +54,7 @@ def exist_project(request):  # 계정과 프로젝트 연결 필요
         if ownership:
             return redirect('draw', pk=proj.id)
         else:
-            return index(request, True) # 알림 띄우고 싶지만 잘 모르겠음
+            return index(request, True)  # 알림 띄우고 싶지만 잘 모르겠음
 
 
 def undone_chars(request, pk):
@@ -93,23 +93,16 @@ def draw(request, pk):
 
 @csrf_exempt
 def draw_save_img(request, pk):
-    data = request.POST.__getitem__('data')
-    letter = request.POST.__getitem__('letter')
+    data = request.POST['data']
+    letter = request.POST['letter']
+    extension = request.POST['format']
     data = data[22:]  # 앞에 base64 아닌부분 제거
 
     proj = Proj.objects.filter(id=pk)[0]
-    filename = './fontmaker/ff_projects/{}/{}'.format(proj.name, letter + '.png')
 
-    image = open(filename, "wb")
-    image.write(base64.b64decode(data))
-    image.close()
+    proj.setImageOf(data, letter, extension)
 
-    answer = {'category': 'notyet'}
-
-    proj.setImageOf(filename)
-    os.remove(filename)
-
-    return JsonResponse(answer)
+    return JsonResponse()
 
 
 def draw_load_img(request, pk, letter):

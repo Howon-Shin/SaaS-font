@@ -119,11 +119,11 @@ $(document).ready(function(){
     });
 });
 
-function saveImage(img, letter, complete_fn = null) {
+function saveImage(img, letter, format = '.png', complete_fn = null) {
     $.ajax({ // base64포멧으로 이미지 업로드
         type: 'POST',
         url: 'saveImg/',
-        data: {data: img, letter: letter},
+        data: {data: img, letter: letter, format: format},
         success: function(result) {
             alert("업로드완료");
         },
@@ -215,26 +215,27 @@ function uploadFiles(e) {
                 alert(file.name + "은 이미지 파일이 아닙니다.");
                 continue;
             }
-            if (!file.name.match(/^\S\.\w*/)) {
-                alert(file.name + ": 파일 이름은 한 글자여야 합니다.");
-                continue;
-            }
 
-            const letter = file.name.slice(0, 1);
-            createImgBase64(file, letter);
+            const filename = file.name.split('.');
+            const extension = '.' + filename[filename.length - 1];
+            filename.pop();
+            const letter = filename.join('.');
+            createImgBase64(file, letter, extension);
         }
         return;
     }
 
     if (files[0].type.match(/image.*/)) {
         const letter = document.getElementById('working').textContent;
-        createImgBase64(files[0], letter);
+        const filename = files[0].name.split('.');
+        const extension = '.' + filename[filename.length - 1];
+        createImgBase64(files[0], letter, extension);
     } else {
         alert('이미지가 아닙니다.');
         return;
     }
 
-    function createImgBase64(file, letter) {
+    function createImgBase64(file, letter, extension) {
         createImageBitmap(file).then(function(img) {
             // saveImg로 보내기 위해 base64 데이터로 변환
             let cvs = document.createElement('CANVAS');
@@ -244,7 +245,7 @@ function uploadFiles(e) {
             ctx_load.drawImage(img, 0, 0);
             let dataURL = cvs.toDataURL();
 
-            saveImage(dataURL, letter, handleLoadClick);
+            saveImage(dataURL, letter, extension, handleLoadClick);
 
             push();
         });
