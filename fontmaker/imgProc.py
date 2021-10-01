@@ -1,10 +1,18 @@
 import cv2
 import numpy as np
 
+def encode2Png(data, fileName):
+    data=np.frombuffer(data, dtype=np.uint8)
+    img=cv2.imdecode(data,cv2.IMREAD_COLOR)
+    if cv2.imwrite(fileName,img):
+        return fileName
+
+def reEncode(fileName, afterName):
+    cv2.imwrite(afterName, cv2.imread(fileName))
+
 def padOut(fileName):
     def pad(base: np.ndarray):
-        h,w,_=base.shape  # AttributeError: 'NoneType' object has no attribute 'shape'
-        # 나한텐 여기서 에러생김
+        h,w,_=base.shape
         lrpad=max(0,(400-w)//2)
         udpad=max(0,(400-h)//2)
         if lrpad:
@@ -28,5 +36,6 @@ def padOut(fileName):
         dtip=h-fud[::-1].argmin()
         return base[utip:dtip, ltip:rtip]
 
-    base=pad(cv2.imread(fileName))
+    print(fileName)
+    base=pad(crop(cv2.imread(fileName)))
     cv2.imwrite(fileName, base)

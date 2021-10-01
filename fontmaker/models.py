@@ -38,11 +38,12 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
         return err if err else ''  # 에러 없는 경우: 파일 위치를 리턴
 
     def getImageOf(self, letter, format='.svg'):  # 글자 이미지 추출
+        code=str(ord(letter))
         vp = Proj.SUB[:]
         if format == '.svg':
-            vp.extend([self.name, '-v', letter])
+            vp.extend([self.name, '-v', code])
         else:
-            vp.extend([self.name, '-p', letter])
+            vp.extend([self.name, '-p', code])
         out, err = subprocess.Popen(vp, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         if len(err) > 371:
             return err
@@ -56,18 +57,25 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
         vp = Proj.SUB[:]
         fileName = self.convertFileName(letter, format)
 
-        image = open(fileName, "wb")
-        image.write(base64.b64decode(data))
-        image.close()
+        data=base64.b64decode(data)
 
-        vp.extend([self.name, '-a', fileName])  # letter는 파일 경로로 바꿔야 함
+        if format in {'.bmp','.xbm','.jpg'}:
+            fileName = self.convertFileName(letter, '.png')
+            imgProc.encode2Png(data,fileName)
+        else:
+            image = open(fileName, "wb")
+            image.write(data)
+            image.close()
+
+        vp.extend([self.name, '-a', fileName])
         out, err = subprocess.Popen(vp, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        print('OuT: ',out.decode('cp949'))
         os.remove(fileName)
 
     def convertFileName(self, letter, format):
-        if letter in ASCII:
-            letter = ASCII[letter]
-
+        if letter in ASCIIR:
+            letter=ASCIIR[letter]
+        letter=str(ord(letter))
         fileName = './fontmaker/ff_projects/{}/{}'.format(self.name, letter + format)
 
         return fileName

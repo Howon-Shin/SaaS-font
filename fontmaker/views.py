@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login
 from django.http.response import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse, FileResponse, Http404
+from django.http import JsonResponse, FileResponse, Http404, HttpResponseForbidden
 from fontmaker.forms import *
 from .models import Proj, HUser, OwnerShip
 import os, time, shutil
@@ -73,8 +73,10 @@ def draw(request, pk):
     remains_ascii = 0  # 97
     remains_hangul = 0  # 11172
     remains_jamo = 0  # 67
-
-    proj = Proj.objects.get(id=pk)
+    try:
+        proj = Proj.objects.get(id=pk)
+    except:
+        return HttpResponseForbidden()
     huser = HUser.objects.get(user=request.user)
     owner_level = OwnerShip.objects.filter(proj=proj, user=huser)[0].level
 
@@ -102,7 +104,7 @@ def draw_save_img(request, pk):
 
     proj.setImageOf(data, letter, extension)
 
-    return JsonResponse()
+    return JsonResponse({})
 
 
 def draw_load_img(request, pk, letter):

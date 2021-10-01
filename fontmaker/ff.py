@@ -57,22 +57,22 @@ def importImg(font, path):
     if ext not in VECTOR and ext not in BITMAP:
         return
     letter=letter.split('/')[-1]
-    if letter in ASCIIR:
-        letter=ASCIIR[letter]
-    font.removeGlyph(font.createChar(ord(letter),letter))
-    gl=font.createChar(ord(letter),letter)
+    code=int(letter)
+
+    font.removeGlyph(font.createChar(code,chr(code)))
+    gl=font.createChar(code,chr(code))
     gl.importOutlines(path)
     # set width and height: ascii's are on above, others are defined as 1024
     if ext in BITMAP:
         gl.autoTrace()
-    setPos(gl, letter)
-    setPos(gl, letter)
+    setPos(gl, code)
+    setPos(gl, code)
     gl.simplify()
     gl.round()
     # 추가 과정: 차지 공간 설정, 위치 표준화
 
-def setPos(gl, letter):
-    code=ord(letter)
+def setPos(gl, code):
+    letter=chr(code)
     if letter.isascii():    # 개별 위치선정
         gl.transform(transV(gl.boundingBox(), AREA[code-33]))
     elif code>=12593 and code<=12622:
@@ -96,7 +96,7 @@ def setPos(gl, letter):
 if __name__=='__main__':
     ap=argparse.ArgumentParser()
     ap.add_argument('-e',help="다른 모든 작업 후 뽑아낼 폰트 파일 이름을 말합니다. 명시된 확장자로 정리됩니다.")
-    ap.add_argument('-a',help="이미지 파일을 글리프로 추가합니다. 이미지 이름에서는, 확장자를 제외한 이름이 반드시 그 문자여야 합니다. 파일 이름으로 사용할 수 없는 문자는 이름이 따로 정해져 있으므로 참고하시기 바랍니다. 공백으로 와일드카드를 사용할 수 있습니다. 이미 있던 경우 덮어씁니다.")
+    ap.add_argument('-a',help="이미지 파일을 글리프로 추가합니다. 이미지 이름에서는, 확장자를 제외한 이름이 반드시 그 문자의 유니코드여야 합니다. *로 와일드카드를 사용할 수 있습니다. 이미 있던 경우 덮어씁니다.")
     ap.add_argument('-p',help="해당 문자의 png 파일을 추출합니다.")
     ap.add_argument('-v',help="해당 문자의 svg 파일을 추출합니다. wc인 경우 현재 있는 모든 한글 글리프에 대하여 추출합니다.")
     ap.add_argument('-o',help="프로젝트 이름입니다. 해당 프로젝트에 sfd 파일이 없는 경우 새로 만들어집니다.")
@@ -118,17 +118,14 @@ if __name__=='__main__':
             for x in range(44032,55204):
                 font.createChar(x,chr(x))
         if ns.a:
-            if ns.a != ' ':
+            if ns.a != '*':
                 importImg(font, ns.a)
             else:
                 for x in os.scandir(BASEPATH.format(ns.o,'')):
                     importImg(font, x.path)
         if ns.p:
             try:
-                if ns.p in ASCII:
-                    font[ns.p].export(BASEPATH.format(ns.o,ASCII[ns.p]+'.png'), pixelsize=400)
-                else:
-                    font[ns.p].export(BASEPATH.format(ns.o,ns.p+'.png'), pixelsize=400)
+                font[chr(int(ns.p))].export(BASEPATH.format(ns.o,ns.p+'.png'),pixelsize=400)
             except:
                 pass
         if ns.v:
@@ -136,12 +133,9 @@ if __name__=='__main__':
                 for g in font.glyphs:
                     if g.glyphname.isascii():
                         continue
-                    g.export(BASEPATH.format(ns.o,g.glyphname+'.svg'))
+                    g.export(BASEPATH.format(ns.o,str(ord(g.glyphname))+'.svg'))
             try:
-                if ns.v in ASCII:
-                    font[ns.v].export(BASEPATH.format(ns.o,ASCII[ns.v]+'.svg'))
-                else:
-                    font[ns.v].export(BASEPATH.format(ns.o,ns.v+'.svg'))
+                font[chr(int(ns.v))].export(BASEPATH.format(ns.o,ns.v+'.svg'))
             except:
                 pass
 
@@ -149,20 +143,20 @@ if __name__=='__main__':
         if ns.ua:
             for x in range(26,127):
                 try:
-                    if not font[chr(x)].isWorthOutputting():
+                    if not font[x].isWorthOutputting():
                         unFilled+=chr(x)+' '
                 except TypeError:
                     unFilled+=chr(x)+' '
         if ns.uk:
             for x in range(12593, 12644):
                 try:
-                    if not font[chr(x)].isWorthOutputting():
+                    if not font[x].isWorthOutputting():
                         unFilled+=chr(x)+' '
                 except TypeError:
                     unFilled+=chr(x)+' '
             for x in range(44032,55204):
                 try:
-                    if not font[chr(x)].isWorthOutputting():
+                    if not font[x].isWorthOutputting():
                         unFilled+=chr(x)+' '
                 except TypeError:
                     unFilled+=chr(x)+' '
