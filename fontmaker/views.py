@@ -53,7 +53,7 @@ def exist_project(request):  # 계정과 프로젝트 연결 필요
         if not (proj or huser):
             return redirect('/')
 
-        ownership = OwnerShip.objects.get(proj=proj, user=huser)
+        ownership = OwnerShip.objects.filter(proj=proj, user=huser)
 
         if ownership:
             return redirect('draw', pk=proj.id)
@@ -81,7 +81,7 @@ def draw(request, pk):
         proj = Proj.objects.get(id=pk)
     except:
         return HttpResponseForbidden()
-    huser = HUser.objects.get(user=request.user)
+    huser = request.user.handle
     owner_level = OwnerShip.objects.filter(proj=proj, user=huser)[0].level
 
     cur_ownerships = OwnerShip.objects.filter(proj=proj).exclude(user=huser)
@@ -115,7 +115,6 @@ def draw_save_img(request, pk):
 
     return JsonResponse({})
 
-
 def draw_load_img(request, pk, letter):
     proj = Proj.objects.filter(id=pk)[0]
     image = proj.getImageOf(letter, '.png')
@@ -144,7 +143,7 @@ def signup(request):
             user = authenticate(username=username, password=raw_password)  # 사용자 인증
             login(request, user)  # 로그인
 
-            # HUser 연결, name 저렇게 하면되나?
+            # HUser 연결
             huser = HUser(user=user, name=username)
             huser.ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '')).split(',')[0].strip()
             huser.save()
@@ -158,7 +157,7 @@ def signup(request):
 def delete_project(request, pk):
     if request.method == "POST":
         proj = Proj.objects.get(id=pk)
-        huser = HUser.objects.get(user=request.user)
+        huser = request.user.handle
         is_manager = OwnerShip.objects.filter(proj=proj, user=huser)[0].level
 
         if request.user.is_authenticated and is_manager == 2:
@@ -172,19 +171,52 @@ def delete_project(request, pk):
     return JsonResponse({'right': 'no'})
 
 
+def exit_project(request, pk):
+    if request.method == "POST":
+        proj = Proj.objects.get(id=pk)
+        huser = request.user.handle
+        ownership = OwnerShip.objects.filter(proj=proj, user=huser)[0]
+
+        if request.user.is_authenticated:
+            ownership.delete()
+
+            successor = ''
+            if ownership.level == 2:
+                proj_ownerships = OwnerShip.objects.filter(proj=proj).order_by("-level")
+
+                if proj_ownerships:
+                    # 다음으로 렙 높은 사람한테 양도
+                    proj_ownerships[0].level = 2
+                    proj_ownerships[0].save()
+                    successor = proj_ownerships[0].user.name
+                else:
+                    # 프로젝트 및 프로젝트 폴더 삭제
+                    proj.delete()
+                    proj_path = './fontmaker/ff_projects/{}'.format(proj.name)
+                    shutil.rmtree(proj_path)
+
+                return JsonResponse({'successor': successor})
+
+        return JsonResponse({'error': 'noerror'})
+
+    return JsonResponse({'right': 'no'})
+
+
 def invite_member(request, pk):
     if request.method == "POST":
         proj = Proj.objects.get(id=pk)
-        huser = HUser.objects.get(user=request.user)
+        huser = request.user.handle
         owner_level = OwnerShip.objects.filter(proj=proj, user=huser)[0].level
 
         member_ID = request.POST.__getitem__('memberID')
         member = HUser.objects.filter(name=member_ID)
 
         if request.user.is_authenticated and owner_level >= 1:
-            if member:
+            if member and (member[0] != request.user.handle):
                 OwnerShip(proj=proj, user=member[0], level=0).save()
                 return JsonResponse({'error': 'noerror'})
+            elif member[0] == request.user.handle:
+                return JsonResponse({'error': 'selfinvite'})
             else:
                 return JsonResponse({'error': 'nomember'})
 
@@ -194,7 +226,7 @@ def invite_member(request, pk):
 def manage_member(request, pk):
     if request.method == "POST":
         proj = Proj.objects.get(id=pk)
-        huser = HUser.objects.get(user=request.user)
+        huser = request.user.handle
         owner_level = OwnerShip.objects.filter(proj=proj, user=huser)[0].level
 
         member_ID = request.POST.__getitem__('memberID')
@@ -205,10 +237,12 @@ def manage_member(request, pk):
         if request.user.is_authenticated and owner_level >= 2:
             if member_ownership.level == level:
                 return JsonResponse({'error': 'samelevel'})
-            else:
+            elif 0 <= level <= 1:
                 member_ownership.level = level
                 member_ownership.save()
                 return JsonResponse({'error': 'noerror'})
+            else:
+                return JsonResponse({'error': 'nolevel'})
 
     return JsonResponse({'error': 'noright'})
 
@@ -216,12 +250,15 @@ def manage_member(request, pk):
 def fire_member(request, pk):
     if request.method == "POST":
         proj = Proj.objects.get(id=pk)
-        huser = HUser.objects.get(user=request.user)
+        huser = request.user.handle
         owner_level = OwnerShip.objects.filter(proj=proj, user=huser)[0].level
 
         member_ID = request.POST.__getitem__('memberID')
         member = HUser.objects.get(name=member_ID)
         member_ownership = OwnerShip.objects.get(proj=proj, user=member)
+
+        if huser == member:
+            return JsonResponse({'error': 'noright'})
 
         if request.user.is_authenticated and owner_level >= 2:
             if member:

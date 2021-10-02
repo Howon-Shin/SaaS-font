@@ -38,7 +38,8 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
         return err if err else ''  # 에러 없는 경우: 파일 위치를 리턴
 
     def getImageOf(self, letter, format='.svg'):  # 글자 이미지 추출
-        code=str(ord(letter))
+        code=letter
+        letter=chr(int(code))
         vp = Proj.SUB[:]
         if format == '.svg':
             vp.extend([self.name, '-v', code])
@@ -74,6 +75,7 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
         vp.extend([self.name, '-a', fileName])
         out, err = subprocess.Popen(vp, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         print('OuT: ',out.decode('cp949'))
+        print("err: ", err[371:])
         os.remove(fileName)
 
     def convertFileName(self, letter, format):

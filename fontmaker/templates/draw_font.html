@@ -4,17 +4,22 @@
 <li class="nav-item dropdown">
     {% load static %}
     <script type="module" src="{% static 'js/project_manage.js' %}"></script>
-    {% if owner_level >= 1 %}
+    {% if owner_level >= 0 %}
     <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
        aria-haspopup="true" aria-expanded="false">프로젝트 관리</a>
     <div class="dropdown-menu" >
         <form method="post" class="post-form" action="">
             {% csrf_token %}
+            {% if owner_level >= 1 %}
             <a id="member-invite" class="dropdown-item" href="#layer3">팀원 초대</a>
+            {% endif %}
             {% if owner_level >= 2 %}
             <a id="member-manage" class="dropdown-item" href="#layer4">팀원 관리</a>
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" id="proj-delete" href="#" type="submit">프로젝트 삭제</a>
+            {% endif %}
+            {% if owner_level >= 0 %}
+            <a id="proj-exit" class="dropdown-item" href="#" type="submit">프로젝트 탈퇴</a>
             {% endif %}
         </form>
     </div>
@@ -67,15 +72,21 @@
                         <button id="jsSave" style="background-color:rgb(200, 230, 255)">업로드</button>
                         <button id="jsLoad">불러오기</button>
                     </div>
-                    <p style="color:gray">◈ 이미지 파일을 그림판에 드래그&드랍하여 올릴 수 있습니다.</p>
-                    <p style="color:gray">◈ 한 장만 드랍시 현재 작업 중인 글자에 업로드 됩니다.</p>
-                    <p style="color:gray">◈ 여러 장 드랍시 파일 이름에 따라 업로드 됩니다. 파일 이름은 한 글자여야 합니다. (예시: 가.png)</p>
                 </div>
                 <br>
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked=""
                            onclick="guide_check(this)">
                     <label class="form-check-label" for="flexSwitchCheckChecked">템플릿 가이드 문자 보기</label>
+                </div>
+                <br>
+                <div>
+                    <p style="color:gray">◈ 이미지 파일을 그림판에 드래그&드랍하여 올릴 수 있습니다.</p>
+                    <p style="color:gray">◈ 한 장만 드랍시 현재 작업 중인 글자에 업로드 됩니다.</p>
+                    <p style="color:gray">◈ 여러 장 드랍시 파일 이름에 따라 업로드 됩니다. 파일 이름은 한 글자여야 합니다. (예시: 가.png)</p>
+                    <p style="color:gray">◈ 단 일부 기호는 다음과 같은 파일 이름을 대신 사용하여야 합니다.
+                        ('\':BSLASH, '/':SLASH, ':':COLON,'?':QUEST,'%':PERCENT,'*':ASTER,
+                        '|':BAR,'.':PERIOD,'<':LT,'>':GT,'"':DOUBLE,"'":SINGLE)</p>
                 </div>
                 {% load static %}
                 <script type="text/javascript" src="{% static 'js/draw_board.js' %}"></script>
@@ -149,7 +160,6 @@
                     </select>
                     <label class="col-form-label mt-4" for="level">권한</label>
                     <select class="form-control" id="level" name="level">
-                        <option value="{{ 2 }}">관리자</option>
                         <option value="{{ 1 }}">부관리자</option>
                         <option value="{{ 0 }}">일반</option>
                     </select>

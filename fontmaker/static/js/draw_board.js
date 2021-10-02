@@ -106,11 +106,17 @@ if (erase_all) {
 
 // 세이브 기능
 $(document).ready(function(){
-    $('#jsSave').click(function(){
+    $('#jsSave').click(async function(){
         this.disabled = true;
         const data = canvas.toDataURL();
         const letter = document.getElementById('working').textContent;
-        saveImage(data, letter, abling(this));
+        let is_uploaded = await saveImage(data, letter, abling(this));
+
+        if (is_uploaded) {
+            alert("업로드 완료");
+        } else {
+            alert("에러 발생");
+        }
 
         // 중복클릭 방진데 잘안되는거 같음
         function abling(save_btn) {
@@ -119,21 +125,25 @@ $(document).ready(function(){
     });
 });
 
-function saveImage(img, letter, format = '.png', complete_fn = null) {
-    $.ajax({ // base64포멧으로 이미지 업로드
+async function saveImage(img, letter, format = '.png', complete_fn = null) {
+    let succeeded = false;
+    await $.ajax({ // base64포멧으로 이미지 업로드
         type: 'POST',
         url: 'saveImg/',
         data: {data: img, letter: letter, format: format},
         success: function(result) {
-            alert("업로드완료");
+            console.log(letter);
+            succeeded = true;
         },
         error: function(req, stat, e) {
-            alert("에러발생");
+            succeeded = false;
         },
         complete: function() {
             if (complete_fn) complete_fn();
         }
     });
+
+    return await succeeded;
 }
 
 // 불러오기 기능
@@ -141,7 +151,7 @@ const load = document.getElementById("jsLoad");
 
 function handleLoadClick() {
     let img = new Image();
-    img.src = document.getElementById('working').textContent;
+    img.src = document.getElementById('working').textContent.charCodeAt(0);
     load.disabled = true;
     // 캔버스 지우고 불러오기
 
@@ -196,13 +206,13 @@ if (redo) {
     redo.addEventListener("click", redoClick);
 }
 
-// 드래그앤 드롭으로 파일 띄우기
+// 드래그앤 드롭으로 파일 업로드
 function dragOver(e) {
     e.stopPropagation();
     e.preventDefault();
 }
 
-function uploadFiles(e) {
+async function uploadFiles(e) {
     e.stopPropagation();
     e.preventDefault();
 
@@ -210,9 +220,11 @@ function uploadFiles(e) {
     let files = e.target.files || e.dataTransfer.files;
 
     if (files.length > 1) {
+        let is_uploadeds = {};
+        let not_img = '';
         for (const file of files) {
             if (!file.type.match(/image.*/)) {
-                alert(file.name + "은 이미지 파일이 아닙니다.");
+                not_img += file.name + "은 이미지 파일이 아닙니다.\n";
                 continue;
             }
 
@@ -220,8 +232,18 @@ function uploadFiles(e) {
             const extension = '.' + filename[filename.length - 1];
             filename.pop();
             const letter = filename.join('.');
-            createImgBase64(file, letter, extension);
+
+            is_uploadeds[letter] = await createImgBase64(file, letter, extension);
         }
+        console.log(is_uploadeds);
+        let alert_text = '';
+        for (let key in is_uploadeds) {
+            alert_text += key + " : " + (is_uploadeds[key] ? "업로드 완료\n" : "에러 발생\n");
+        }
+        alert_text += not_img;
+
+        alert(alert_text);
+
         return;
     }
 
@@ -229,26 +251,32 @@ function uploadFiles(e) {
         const letter = document.getElementById('working').textContent;
         const filename = files[0].name.split('.');
         const extension = '.' + filename[filename.length - 1];
-        createImgBase64(files[0], letter, extension);
+        if (createImgBase64(files[0], letter, extension)) {
+            alert("업로드 완료");
+        } else {
+            alert("에러 발생");
+        }
     } else {
         alert('이미지가 아닙니다.');
         return;
     }
 
-    function createImgBase64(file, letter, extension) {
-        createImageBitmap(file).then(function(img) {
-            // saveImg로 보내기 위해 base64 데이터로 변환
-            let cvs = document.createElement('CANVAS');
-            let ctx_load = cvs.getContext('2d');
-            cvs.height = img.height;
-            cvs.width = img.width;
-            ctx_load.drawImage(img, 0, 0);
-            let dataURL = cvs.toDataURL();
+    async function createImgBase64(file, letter, extension) {
+        let is_uploaded = false;
 
-            saveImage(dataURL, letter, extension, handleLoadClick);
+        let img = await createImageBitmap(file);
+        let cvs = document.createElement('CANVAS');
+        let ctx_load = cvs.getContext('2d');
+        cvs.height = img.height;
+        cvs.width = img.width;
+        ctx_load.drawImage(img, 0, 0);
+        let dataURL = cvs.toDataURL();
 
-            push();
-        });
+        is_uploaded = await saveImage(dataURL, letter, extension, handleLoadClick);
+
+        push();
+
+        return is_uploaded;
     }
 }
 
