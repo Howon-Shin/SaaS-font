@@ -62,10 +62,14 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
         if format in {'.bmp','.xbm','.jpg'}:
             fileName = self.convertFileName(letter, '.png')
             imgProc.encode2Png(data,fileName)
+            format='.png'
         else:
             image = open(fileName, "wb")
             image.write(data)
             image.close()
+
+        if format =='.png':
+            imgProc.transparent2white(fileName)
 
         vp.extend([self.name, '-a', fileName])
         out, err = subprocess.Popen(vp, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()

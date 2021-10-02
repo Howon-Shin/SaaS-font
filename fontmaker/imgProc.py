@@ -10,6 +10,15 @@ def encode2Png(data, fileName):
 def reEncode(fileName, afterName):
     cv2.imwrite(afterName, cv2.imread(fileName))
 
+def transparent2white(fileName):
+    data=cv2.imread(fileName, cv2.IMREAD_UNCHANGED)
+    if data.shape[2]<4:
+        return
+    transMask=data[:,:,3]<255
+    data[transMask]=(255,255,255,255)
+    cv2.cvtColor(data,cv2.COLOR_BGRA2BGR,data)
+    cv2.imwrite(fileName,data)
+
 def padOut(fileName):
     def pad(base: np.ndarray):
         h,w,_=base.shape
