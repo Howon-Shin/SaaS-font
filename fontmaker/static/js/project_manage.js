@@ -1,11 +1,19 @@
 import { layer_popup } from "./project_popup.js";
 
-// 프로젝트 삭제 기능
+// 프로젝트 삭제/탈퇴 기능
 $(document).ready(function(){
     $('#proj-delete').click(function(){
         this.disabled = true;
         if (confirm("프로젝트를 삭제하시겠습니까?")) {
             deleteProject();
+        }
+        this.disabled = false;
+    });
+
+    $('#proj-exit').click(function(){
+        this.disabled = true;
+        if (confirm("프로젝트에서 나가시겠습니까?")) {
+            exitProject();
         }
         this.disabled = false;
     });
@@ -20,6 +28,35 @@ function deleteProject() {
                 alert("권한이 없습니다.");
             } else {
                 alert("프로젝트 삭제 완료");
+                location.href = "/"
+            }
+        },
+        error: function(req, stat, e) {
+            alert("에러발생");
+        },
+    });
+}
+
+function exitProject() {
+    $.ajax({
+        type: 'POST',
+        url: 'exitProj/',
+        success: function(result) {
+            if (result == {'right': 'no'}) {
+                alert("권한이 없습니다.");
+            } else {
+                alert("프로젝트 탈퇴 완료");
+                console.log(result);
+                if (result.error == 'noerror') {
+                } else {
+                    let successor = result.successor
+                    if (successor) {
+                        alert("프로젝트가 " + successor + "에게 양도되었습니다.");
+                    } else {
+                        alert("남은 인원이 없어 프로젝트가 삭제되었습니다.");
+                    }
+                }
+
                 location.href = "/"
             }
         },
@@ -80,6 +117,8 @@ function inviteMember(memberID) {
                 alert("초대 완료");
             } else if (result.error == 'nomember') {
                 alert("잘못된 member ID 입니다.");
+            } else if (result.error == 'selfinvite') {
+                alert("본인입니다.");
             } else {
                 alert("권한이 없습니다.");
             }
@@ -101,6 +140,8 @@ function manageMember(memberID, level) {
                 alert("변경 완료");
             } else if (result.error == 'samelevel') {
                 alert("이미 해당 권한자입니다.");
+            } else if (result.error == 'nolevel') {
+                alert("설정 불가능한 권한입니다.");
             } else {
                 alert("권한이 없습니다.");
             }

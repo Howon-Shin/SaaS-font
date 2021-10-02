@@ -74,6 +74,7 @@ class Proj(models.Model):  # fontforge 프로젝트 파일을 통한 관리.
         vp.extend([self.name, '-a', fileName])
         out, err = subprocess.Popen(vp, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         print('OuT: ',out.decode('cp949'))
+        print("err: ", err[371:])
         os.remove(fileName)
 
     def convertFileName(self, letter, format):
