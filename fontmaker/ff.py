@@ -111,7 +111,7 @@ if __name__=='__main__':
         else:
             os.makedirs('./fontmaker/ff_projects/'+ns.o)
             font=ffg.font()
-            font.createChar(ord(' '),' ')
+            nd=font.createChar(0,'.notdef')
         if ns.h:
             for x in range(12593, 12644):
                 font.createChar(x,chr(x))

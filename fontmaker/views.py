@@ -9,6 +9,10 @@ from fontmaker.forms import *
 from .models import Proj, HUser, OwnerShip
 import os, time, shutil
 
+import threading
+
+lock2=threading.Lock()
+locks=dict()
 
 def index(request, isWrong=False):
     """
@@ -101,8 +105,13 @@ def draw_save_img(request, pk):
     data = data[22:]  # 앞에 base64 아닌부분 제거
 
     proj = Proj.objects.filter(id=pk)[0]
-
+    lock2.acquire()
+    if proj.id not in locks:
+        locks[proj.id]=threading.Lock()
+    lock2.release()
+    locks[proj.id].acquire()
     proj.setImageOf(data, letter, extension)
+    locks[proj.id].release()
 
     return JsonResponse({})
 
