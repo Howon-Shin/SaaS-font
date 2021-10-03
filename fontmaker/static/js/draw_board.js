@@ -132,8 +132,12 @@ async function saveImage(img, letter, format = '.png', complete_fn = null) {
         url: 'saveImg/',
         data: {data: img, letter: letter, format: format},
         success: function(result) {
+            if (result.error == 'no') {
+                succeeded = true;
+            } else {
+                succeeded = false;
+            }
             console.log(letter);
-            succeeded = true;
         },
         error: function(req, stat, e) {
             succeeded = false;
@@ -220,8 +224,11 @@ async function uploadFiles(e) {
     let files = e.target.files || e.dataTransfer.files;
 
     if (files.length > 1) {
-        let is_uploadeds = {};
+        let is_uploaded = false;
         let not_img = '';
+        let file_list = [];
+        let letter_list = [];
+        let ext_list = [];
         for (const file of files) {
             if (!file.type.match(/image.*/)) {
                 not_img += file.name + "은 이미지 파일이 아닙니다.\n";
@@ -233,12 +240,15 @@ async function uploadFiles(e) {
             filename.pop();
             const letter = filename.join('.');
 
-            is_uploadeds[letter] = await createImgBase64(file, letter, extension);
+            file_list.push(file);
+            letter_list.push(letter);
+            ext_list.push(extension);
         }
-        console.log(is_uploadeds);
+        is_uploaded = await createImgBase64s(file_list, letter_list, ext_list);
+        console.log(is_uploaded);
         let alert_text = '';
-        for (let key in is_uploadeds) {
-            alert_text += key + " : " + (is_uploadeds[key] ? "업로드 완료\n" : "에러 발생\n");
+        for (let name in letter_list) {
+            alert_text += name + " : " + (is_uploaded ? "업로드 완료\n" : "에러 발생\n");
         }
         alert_text += not_img;
 
@@ -273,6 +283,35 @@ async function uploadFiles(e) {
         let dataURL = cvs.toDataURL();
 
         is_uploaded = await saveImage(dataURL, letter, extension, handleLoadClick);
+
+        push();
+
+        return is_uploaded;
+    }
+
+    async function createImgBase64s(filelist, letterlist, extlist) {
+        let is_uploaded = false;
+        let datas = '';
+        let letters = '';
+        let exts = '';
+
+        let i = 0;
+        for (const file of filelist) {
+            let img = await createImageBitmap(file);
+            let cvs = document.createElement('CANVAS');
+            let ctx_load = cvs.getContext('2d');
+            cvs.height = img.height;
+            cvs.width = img.width;
+            ctx_load.drawImage(img, 0, 0);
+            let dataURL = cvs.toDataURL();
+
+            datas += String(dataURL) + '|';
+            letters += letterlist[i] + '|';
+            exts += extlist[i] + '|';
+            i++;
+        }
+
+        is_uploaded = await saveImage(datas, letters, exts, handleLoadClick);
 
         push();
 

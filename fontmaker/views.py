@@ -97,23 +97,47 @@ def draw(request, pk):
     return render(request, 'draw_font.html', context)
 
 
-@csrf_exempt
 def draw_save_img(request, pk):
     data = request.POST['data']
     letter = request.POST['letter']
     extension = request.POST['format']
-    data = data[22:]  # 앞에 base64 아닌부분 제거
 
-    proj = Proj.objects.filter(id=pk)[0]
-    lock2.acquire()
-    if proj.id not in locks:
-        locks[proj.id]=threading.Lock()
-    lock2.release()
-    locks[proj.id].acquire()
-    proj.setImageOf(data, letter, extension)
-    locks[proj.id].release()
+    if len(extension) == 4:  # 이미지 파일 하나
+        data = data[22:]  # 앞에 base64 아닌부분 제거
 
-    return JsonResponse({})
+        proj = Proj.objects.filter(id=pk)[0]
+
+        lock2.acquire()
+        if proj.id not in locks:
+            locks[proj.id]=threading.Lock()
+        lock2.release()
+
+        locks[proj.id].acquire()
+        proj.setImageOf(data, letter, extension)
+        locks[proj.id].release()
+
+        return JsonResponse({'error': 'no'})
+    elif len(extension) > 4:
+        data_list = data.split('|')
+        letter_list = letter.split('|')
+        extension_list = extension.split('|')
+
+        proj = Proj.objects.filter(id=pk)[0]
+
+        lock2.acquire()
+        if proj.id not in locks:
+            locks[proj.id] = threading.Lock()
+        lock2.release()
+
+        for i in range(len(extension_list) - 1):
+            locks[proj.id].acquire()
+            proj.setImageOf(data_list[i][22:], letter_list[i], extension_list[i])
+            locks[proj.id].release()
+
+        return JsonResponse({'error': 'no'})
+
+    return JsonResponse({'error': 'true'})
+
 
 def draw_load_img(request, pk, letter):
     proj = Proj.objects.filter(id=pk)[0]
